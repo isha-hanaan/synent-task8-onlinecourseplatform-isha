@@ -20,6 +20,9 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 
+// Course Routes Mounting
+app.use('/api/courses', require('./routes/courseRoutes'));
+
 // Error Handler (must be last)
 app.use(errorHandler);
 

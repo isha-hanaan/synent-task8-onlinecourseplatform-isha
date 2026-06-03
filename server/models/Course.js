@@ -1,25 +1,39 @@
 const mongoose = require('mongoose');
 
-const LessonSchema = new mongoose.Schema({
-    title: { type: String, required: true },
-    videoUrl: { type: String, required: true }, // URL to hosted video (Vimeo/AWS S3/YouTube)
-    duration: { type: String }, // e.g., "12:45"
-    isFreePreview: { type: Boolean, default: false } // Allows students to sample a lesson before buying
-});
-
-const ModuleSchema = new mongoose.Schema({
-    title: { type: String, required: true },
-    lessons: [LessonSchema] // Embedding lessons inside modules
-});
-
 const CourseSchema = new mongoose.Schema({
-    title: { type: String, required: true, trim: true },
-    description: { type: String, required: true },
-    price: { type: Number, required: true, default: 0 },
-    thumbnail: { type: String }, // URL of the course banner image
-    category: { type: String, required: true },
-    instructor: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // References the Admin user
-    modules: [ModuleSchema], // Embedding modules inside the course
+    title: {
+        type: String,
+        required: [true, 'Please add a course title'],
+        trim: true,
+        maxlength: [100, 'Title cannot be more than 100 characters']
+    },
+    description: {
+        type: String,
+        required: [true, 'Please add a description']
+    },
+    instructor: {
+        type: String,
+        required: [true, 'Please add an instructor name']
+    },
+    price: {
+        type: Number,
+        required: [true, 'Please add a course price'],
+        default: 0
+    },
+    category: {
+        type: String,
+        required: [true, 'Please add a category'],
+        enum: ['Web Development', 'Data Science', 'UI/UX Design', 'Mobile Development', 'Cybersecurity', 'Other']
+    },
+    thumbnail: {
+        type: String,
+        default: 'no-photo.jpg'
+    },
+    createdBy: {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User',
+        required: true
+    }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Course', CourseSchema);

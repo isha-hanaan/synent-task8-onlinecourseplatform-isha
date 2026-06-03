@@ -1,0 +1,44 @@
+### 0. Log In to Get JWT Token
+POST http://127.0.0.1:5000/api/auth/login
+Content-Type: application/json
+
+{
+    "email": "joh@gmail.com",
+    "password": "pass123"
+}
+
+### -----------------------------------------
+
+@token = PASTE_YOUR_LONG_JWT_TOKEN_HERE
+
+### 1. Get All Courses (Public)
+GET http://127.0.0.1:5000/api/courses
+
+### 2. Create a Course (Requires Admin Token)
+POST http://127.0.0.1:5000/api/courses
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "title": "React Frontend Mastery",
+    "description": "Learn React hooks, context, and routing.",
+    "instructor": "John Doe",
+    "price": 49,
+    "category": "Web Development"
+}
+
+### 3. Get Single Course by ID (Replace with an actual ID from your database)
+GET http://127.0.0.1:5000/api/courses/65f123456789abcdef012345
+
+### 4. Update a Course by ID (Requires Admin Token)
+PUT http://127.0.0.1:5000/api/courses/65f123456789abcdef012345
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "price": 59
+}
+
+### 5. Delete a Course by ID (Requires Admin Token)
+DELETE http://127.0.0.1:5000/api/courses/65f123456789abcdef012345
+Authorization: Bearer {{token}}
