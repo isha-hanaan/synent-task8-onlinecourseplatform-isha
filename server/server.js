@@ -1,19 +1,27 @@
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db.js');
+const errorHandler = require('./middleware/errorMiddleware');
+const authRoutes = require('./routes/authRoutes'); // Imported explicitly here
+
 require('dotenv').config();
 
 const app = express();
 
-// Connect Database
 connectDB();
 
 // Middleware
-app.use(cors());
-app.use(express.json()); // Allows us to accept JSON data in req.body
+app.use(cors({
+    origin: '*', // Allows your frontend to connect without CORS blocking
+    credentials: true
+}));
+app.use(express.json());
 
-// Routes Placeholder
-app.use('/api/auth', require('./routes/authRoutes'));
+// Routes
+app.use('/api/auth', authRoutes);
+
+// Error Handler (must be last)
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
