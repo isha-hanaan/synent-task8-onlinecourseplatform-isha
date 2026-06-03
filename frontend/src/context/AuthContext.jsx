@@ -1,8 +1,8 @@
 import { createContext, useState, useContext, useEffect } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 
 // Create Auth Context
-const AuthContext = createContext();
+export const AuthContext = createContext();
 
 // Auth Provider Component
 export const AuthProvider = ({ children }) => {
@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
             setToken(storedToken);
             setUser(JSON.parse(storedUser));
             // Set default axios header
-            axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+            api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
         }
         setLoading(false);
     }, []);
@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.post(`${API_URL}/api/auth/register`, {
+            const response = await api.post(`${API_URL}/api/auth/register`, {
                 name,
                 email,
                 password,
@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.post(`${API_URL}/api/auth/login`, {
+            const response = await api.post(`${API_URL}/api/auth/login`, {
                 email,
                 password,
             });
@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }) => {
             setUser(userData);
 
             // Set default axios header for future requests
-            axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+            api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
 
             setError(null);
             return response.data;
@@ -86,7 +86,7 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        delete axios.defaults.headers.common['Authorization'];
+        delete api.defaults.headers.common['Authorization'];
         setToken(null);
         setUser(null);
         setError(null);
@@ -97,7 +97,7 @@ export const AuthProvider = ({ children }) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.post(`${API_URL}/api/auth/forgot-password`, {
+            const response = await api.post(`${API_URL}/api/auth/forgot-password`, {
                 email,
             });
             setError(null);
@@ -116,7 +116,7 @@ export const AuthProvider = ({ children }) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.put(`${API_URL}/api/auth/reset-password/${token}`, {
+            const response = await api.put(`${API_URL}/api/auth/reset-password/${token}`, {
                 password,
             });
             setError(null);

@@ -12,9 +12,10 @@ connectDB();
 
 // Middleware
 app.use(cors({
-    origin: '*', // Allows your frontend to connect without CORS blocking
+    origin: process.env.CLIENT_URL,
     credentials: true
 }));
+
 app.use(express.json());
 
 // Routes
@@ -22,6 +23,10 @@ app.use('/api/auth', authRoutes);
 
 // Course Routes Mounting
 app.use('/api/courses', require('./routes/courseRoutes'));
+
+app.use('/api/modules', require('./routes/moduleRoutes'));
+
+app.use('/api/lessons', require('./routes/lessonRoutes'));
 
 // Payment and Enrollment Routes Mounting
 app.use('/api/enrollments', require('./routes/enrollmentRoutes'));

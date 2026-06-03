@@ -21,7 +21,14 @@ const protect = async (req, res, next) => {
             return res.status(401).json({ message: 'User not found' });
         }
 
+        if (!req.user.isVerified) {
+            return res.status(401).json({
+                message: 'Please verify your email first'
+            });
+        }
+
         next();
+
     } catch (error) {
         return res.status(401).json({ message: 'Token invalid or expired' });
     }

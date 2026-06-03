@@ -15,10 +15,12 @@ const register = async (req, res) => {
     console.log("1. Register route hit. Body data:", { name, email });
 
     const errors = validationResult(req);
+
     if (!errors.isEmpty()) {
         console.log("Validation failed:", errors.array());
+
         return res.status(400).json({
-            errors: errors.array().map(err => err.msg)
+            message: errors.array().map(err => err.msg).join(', ')
         });
     }
 
