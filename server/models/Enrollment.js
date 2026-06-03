@@ -1,18 +1,35 @@
 const mongoose = require('mongoose');
 
 const EnrollmentSchema = new mongoose.Schema({
-    student: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
-
-    // Progress Tracking
-    completedLessons: [{ type: mongoose.Schema.Types.ObjectId }], // Array of Lesson IDs the student finished
-    progressPercent: { type: Number, default: 0 }, // Dynamically calculated (completedLessons / totalLessons * 100)
-
-    // Razorpay Payment Details
-    paymentStatus: { type: String, enum: ['pending', 'completed', 'failed'], default: 'pending' },
-    razorpayOrderId: { type: String, required: true },
-    razorpayPaymentId: { type: String },
-    amountPaid: { type: Number, required: true }
+    user: {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    course: {
+        type: mongoose.Schema.ObjectId,
+        ref: 'Course',
+        required: true
+    },
+    razorpayOrderId: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    razorpayPaymentId: {
+        type: String
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'completed', 'failed'],
+        default: 'pending'
+    },
+    completedLessons: [{
+        type: String // Stores lesson IDs or titles that the student finishes
+    }]
 }, { timestamps: true });
+
+// Prevent duplicate active enrollments for the same user and course
+EnrollmentSchema.index({ user: 1, course: 1 }, { unique: true });
 
 module.exports = mongoose.model('Enrollment', EnrollmentSchema);

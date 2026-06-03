@@ -42,3 +42,16 @@ Authorization: Bearer {{token}}
 ### 5. Delete a Course by ID (Requires Admin Token)
 DELETE http://127.0.0.1:5000/api/courses/65f123456789abcdef012345
 Authorization: Bearer {{token}}
+
+### 6. Create a Payment Order (Requires Auth Token)
+POST http://127.0.0.1:5000/api/enrollments/order
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "courseId": "REPLACE_WITH_A_VALID_COURSE_ID_FROM_DB"
+}
+
+### 7. Get My Enrolled Courses (Requires Auth Token)
+GET http://127.0.0.1:5000/api/enrollments
+Authorization: Bearer {{token}}

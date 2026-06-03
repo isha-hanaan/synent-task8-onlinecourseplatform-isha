@@ -23,6 +23,9 @@ app.use('/api/auth', authRoutes);
 // Course Routes Mounting
 app.use('/api/courses', require('./routes/courseRoutes'));
 
+// Payment and Enrollment Routes Mounting
+app.use('/api/enrollments', require('./routes/enrollmentRoutes'));
+
 // Error Handler (must be last)
 app.use(errorHandler);
 
