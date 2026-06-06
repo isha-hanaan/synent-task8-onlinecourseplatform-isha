@@ -11,18 +11,18 @@ const generateToken = (id) => {
 
 // @desc    Register User & Send Verification Email
 const register = async (req, res) => {
-    const { name, email, password } = req.body;
-    console.log("1. Register route hit. Body data:", { name, email });
+    const { name, email, password, role } = req.body;
+    console.log("1. Register route hit. Body data:", { name, email, role });
 
     const errors = validationResult(req);
-
     if (!errors.isEmpty()) {
         console.log("Validation failed:", errors.array());
-
         return res.status(400).json({
             message: errors.array().map(err => err.msg).join(', ')
         });
     }
+
+    let createdUser = null;
 
     try {
         console.log("2. Checking if user exists...");
@@ -32,8 +32,17 @@ const register = async (req, res) => {
         console.log("3. Creating verification token and database user...");
         const verificationToken = crypto.randomBytes(20).toString('hex');
 
-        // This line might crash if MongoDB connection is unstable or Mongoose schema has issues
-        user = await User.create({ name, email, password, role: 'student', verificationToken });
+        // Allow explicitly registering as admin if configured, default safely to student
+        const userRole = role && ['student', 'admin'].includes(role) ? role : 'student';
+
+        user = await User.create({
+            name,
+            email,
+            password,
+            role: userRole,
+            verificationToken
+        });
+        createdUser = user; // Track instance to delete if mail delivery crashes
         console.log("4. User created successfully in DB:", user._id);
 
         const verificationUrl = `${process.env.CLIENT_URL}/verify-email/${verificationToken}`;
@@ -48,8 +57,14 @@ const register = async (req, res) => {
 
         res.status(201).json({ message: 'Registration successful! Please check your email to verify your account.' });
     } catch (error) {
-        // CRITICAL LOG: This will print the actual error message in your terminal
         console.error("🔴 REGISTRATION CRASHED! Error details:", error);
+
+        // Clean up unverified dangling database user records if the mailing system crashes
+        if (createdUser) {
+            await User.findByIdAndDelete(createdUser._id);
+            console.log("🧹 Cleaned up user due to mail delivery failure.");
+        }
+
         res.status(500).json({ message: error.message });
     }
 };
@@ -61,7 +76,7 @@ const verifyEmail = async (req, res) => {
         if (!user) return res.status(400).json({ message: 'Invalid or expired verification token' });
 
         user.isVerified = true;
-        user.verificationToken = undefined; // clear token
+        user.verificationToken = undefined;
         await user.save();
 
         res.status(200).json({ message: 'Email verified successfully! You can now log in.' });
@@ -74,7 +89,7 @@ const verifyEmail = async (req, res) => {
 const login = async (req, res) => {
     const { email, password } = req.body;
     try {
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email }).select('+password'); // Ensure password field is explicitly selected if omitted by default
         if (!user) return res.status(400).json({ message: 'Invalid Credentials' });
         if (!user.isVerified) return res.status(401).json({ message: 'Please verify your email first.' });
 
@@ -100,7 +115,7 @@ const forgotPassword = async (req, res) => {
         }
         const resetToken = crypto.randomBytes(20).toString('hex');
         user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-        user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 Minutes valid
+        user.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
         await user.save();
 
         const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
@@ -149,7 +164,6 @@ const resetPassword = async (req, res) => {
     }
 };
 
-// Explicitly bundle everything and export it clearly at the bottom
 module.exports = {
     register,
     verifyEmail,

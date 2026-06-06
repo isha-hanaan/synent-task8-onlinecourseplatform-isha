@@ -13,8 +13,7 @@ const EnrollmentSchema = new mongoose.Schema({
     },
     razorpayOrderId: {
         type: String,
-        required: true,
-        unique: true
+        required: true
     },
     razorpayPaymentId: {
         type: String
@@ -25,7 +24,8 @@ const EnrollmentSchema = new mongoose.Schema({
         default: 'pending'
     },
     completedLessons: [{
-        type: String // Stores lesson IDs or titles that the student finishes
+        type: mongoose.Schema.ObjectId, // Fixed: Cast to valid ObjectId references instead of mixed string types
+        ref: 'Lesson'
     }]
 }, { timestamps: true });
 

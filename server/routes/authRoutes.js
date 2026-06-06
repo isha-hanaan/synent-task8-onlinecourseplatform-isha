@@ -1,5 +1,5 @@
 const express = require('express');
-const { body } = require('express-validator');
+const { body, validationResult } = require('express-validator');
 const {
     register,
     verifyEmail,
@@ -14,15 +14,24 @@ const {
 
 const router = express.Router();
 
-// 1. Define validations cleanly in a clean array outside the route handler
+// Validation Rules Array
 const signupValidation = [
-    body('name').notEmpty().withMessage('Name is required'),
-    body('email').isEmail().withMessage('Please enter a valid email'),
-    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+    body('name').trim().notEmpty().withMessage('Name is required'),
+    body('email').isEmail().normalizeEmail().withMessage('Please enter a valid email address'),
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long')
 ];
 
-// 2. Use the ES6 spread operator (...) to feed them into Express linearly
-router.post('/register', ...signupValidation, register);
+// Interceptor Middleware: Halts execution if validation rules above fail
+const validateRequest = (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, errors: errors.array() });
+    }
+    next();
+};
+
+// Fixed: Linearly apply the checks followed by the verification interceptor
+router.post('/register', signupValidation, validateRequest, register);
 
 router.get('/verify/:token', verifyEmail);
 router.post('/login', login);
@@ -30,11 +39,11 @@ router.post('/forgot-password', forgotPassword);
 router.put('/reset-password/:token', resetPassword);
 
 router.get('/me', protect, (req, res) => {
-    res.json({ user: req.user });
+    res.json({ success: true, user: req.user });
 });
 
 router.get('/admin', protect, authorize('admin'), (req, res) => {
-    res.json({ message: 'Welcome Admin' });
+    res.json({ success: true, message: 'Welcome Admin' });
 });
 
 module.exports = router;

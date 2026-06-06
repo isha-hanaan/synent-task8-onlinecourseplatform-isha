@@ -17,6 +17,7 @@ import ResetPassword from './pages/ResetPassword';
 import Courses from './pages/Courses';       // Added Phase 5
 import CourseDetail from './pages/CourseDetail'; // Added Phase 5
 import LearningPage from './pages/LearningPage';
+import LearnCourse from './pages/LearnCourse';
 
 function App() {
 
@@ -51,6 +52,11 @@ function App() {
                                 <LearningPage />
                             </ProtectedRoute>
                         }
+                    />
+
+                    <Route
+                        path="/learn/:id"
+                        element={<LearnCourse />}
                     />
 
                     {/* Default redirect - sends unauthenticated users to the marketplace */}

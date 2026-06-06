@@ -2,12 +2,17 @@ const crypto = require('crypto');
 const Razorpay = require('razorpay');
 const Enrollment = require('../models/Enrollment');
 const Course = require('../models/Course');
+const Lesson = require('../models/Lesson');
+const Module = require('../models/Module'); // Fixed: Extracted from inline execution loop
 
-// Initialize Razorpay Instance using your secure environment keys
-const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET
-});
+// Initialize Razorpay Instance safely
+let razorpay;
+if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+    razorpay = new Razorpay({
+        key_id: process.env.RAZORPAY_KEY_ID,
+        key_secret: process.env.RAZORPAY_KEY_SECRET
+    });
+}
 
 // @desc    Step 1: Create a secure Razorpay Order
 // @route   POST /api/enrollments/order
@@ -21,23 +26,39 @@ const createOrder = async (req, res) => {
             return res.status(404).json({ message: 'Course not found' });
         }
 
-        // Check if the user is already enrolled
-        const existingEnrollment = await Enrollment.findOne({ user: req.user.id, course: courseId });
+        const existingEnrollment = await Enrollment.findOne({
+            user: req.user.id,
+            course: courseId
+        });
+
         if (existingEnrollment && existingEnrollment.status === 'completed') {
-            return res.status(400).json({ message: 'You are already enrolled in this course' });
+            return res.status(400).json({ message: 'Already enrolled in this course' });
         }
 
-        // Razorpay handles amounts in the smallest currency unit (e.g., paise for INR). 
-        // We multiply the base amount by 100 ($49 becomes 4900).
-        const options = {
-            amount: Math.round(course.price * 100),
-            currency: 'INR',
-            receipt: `receipt_course_${courseId.substring(0, 5)}_${req.user.id.substring(0, 5)}`
-        };
+        const PAYMENT_MODE = process.env.PAYMENT_MODE || "mock";
+        let order;
 
-        const order = await razorpay.orders.create(options);
+        // MOCK MODE
+        if (PAYMENT_MODE === "mock") {
+            order = {
+                id: "order_mock_" + crypto.randomBytes(6).toString('hex'),
+                currency: "INR",
+                amount: course.price * 100
+            };
+        }
+        // REAL RAZORPAY MODE
+        else {
+            if (!razorpay) {
+                return res.status(500).json({ message: 'Razorpay instances are unconfigured. Use mock mode.' });
+            }
+            const options = {
+                amount: Math.round(course.price * 100),
+                currency: 'INR',
+                receipt: `receipt_${courseId.substring(0, 5)}`
+            };
+            order = await razorpay.orders.create(options);
+        }
 
-        // Record the transaction attempt in the database with pending status
         if (existingEnrollment) {
             existingEnrollment.razorpayOrderId = order.id;
             await existingEnrollment.save();
@@ -54,8 +75,10 @@ const createOrder = async (req, res) => {
             success: true,
             order_id: order.id,
             currency: order.currency,
-            amount: order.amount
+            amount: order.amount,
+            mode: PAYMENT_MODE
         });
+
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -66,55 +89,106 @@ const createOrder = async (req, res) => {
 // @access  Private
 const verifyPayment = async (req, res) => {
     try {
-        const { razorpay_order_id, razorpay_payment_id, razorpay_signature, isMockSandboxSuccess } = req.body;
+        const {
+            razorpay_order_id,
+            razorpay_payment_id,
+            razorpay_signature,
+            isMockSandboxSuccess
+        } = req.body;
 
-        // Secure bypass validation rule for your developer project environment testing
+        const PAYMENT_MODE = process.env.PAYMENT_MODE || "mock";
         let isSignatureValid = false;
 
-        if (isMockSandboxSuccess) {
+        // MOCK MODE Sandbox override
+        if (PAYMENT_MODE === "mock" || isMockSandboxSuccess) {
             isSignatureValid = true;
-        } else {
-            // Real cryptographic signature calculation verification
+        }
+        // REAL RAZORPAY MODE
+        else if (razorpay_order_id && razorpay_payment_id && razorpay_signature) {
             const body = razorpay_order_id + "|" + razorpay_payment_id;
             const expectedSignature = crypto
-                .createHmac(
-                    'sha256',
-                    process.env.RAZORPAY_KEY_SECRET
-                )
+                .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
                 .update(body.toString())
-                .digest('hex');
+                .digest("hex");
+
             isSignatureValid = expectedSignature === razorpay_signature;
         }
 
         if (!isSignatureValid) {
-            return res.status(400).json({ success: false, message: 'Payment verification failed. Invalid signature.' });
+            return res.status(400).json({
+                success: false,
+                message: "Payment verification failed"
+            });
         }
 
-        // Unlock course by shifting the database status criteria flags to completed
-        const enrollment = await Enrollment.findOne({ razorpayOrderId: razorpay_order_id });
+        // Find enrollment handling fallbacks
+        const enrollment = await Enrollment.findOne({
+            razorpayOrderId: razorpay_order_id
+        });
+
         if (!enrollment) {
-            return res.status(404).json({ message: 'Enrollment order record missing' });
+            return res.status(404).json({
+                message: "Enrollment order record missing"
+            });
         }
 
-        enrollment.status = 'completed';
-        enrollment.razorpayPaymentId = razorpay_payment_id || 'mock_payment_id';
+        enrollment.status = "completed";
+        enrollment.razorpayPaymentId = razorpay_payment_id || "mock_payment_" + crypto.randomBytes(4).toString('hex');
         await enrollment.save();
 
-        res.status(200).json({ success: true, message: 'Payment verified successfully. Course unlocked!' });
+        return res.status(200).json({
+            success: true,
+            message: "Payment verified successfully. Course unlocked!"
+        });
+
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: error.message });
     }
 };
 
-// @desc    Get current user's active enrollments
+// @desc    Get current user's active enrollments with progress calculations
 // @route   GET /api/enrollments
 // @access  Private
 const getUserEnrollments = async (req, res) => {
     try {
-        const enrollments = await Enrollment.find({ user: req.user.id, status: 'completed' })
-            .populate('course', 'title description instructor thumbnail price');
+        const enrollments = await Enrollment.find({
+            user: req.user.id,
+            status: 'completed'
+        }).populate('course', 'title description instructor thumbnail price category level totalDuration');
 
-        res.status(200).json({ success: true, count: enrollments.length, data: enrollments });
+        const enrollmentData = await Promise.all(
+            enrollments.map(async (enrollment) => {
+                if (!enrollment.course) return null;
+
+                // Find distinct module IDs tied directly to this course
+                const moduleIds = await Module.find({ course: enrollment.course._id }).distinct('_id');
+
+                // Sum up total matching lessons inside those modules
+                const totalLessons = await Lesson.countDocuments({
+                    module: { $in: moduleIds }
+                });
+
+                const completedCount = enrollment.completedLessons?.length || 0;
+                const progressPercentage = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
+
+                return {
+                    ...enrollment.toObject(),
+                    totalLessons,
+                    completedCount,
+                    progressPercentage
+                };
+            })
+        );
+
+        // Filter out dangling elements if a course was deleted but an enrollment remained
+        const cleanedData = enrollmentData.filter(item => item !== null);
+
+        res.status(200).json({
+            success: true,
+            count: cleanedData.length,
+            data: cleanedData
+        });
+
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -132,7 +206,6 @@ const markLessonComplete = async (req, res) => {
             return res.status(403).json({ message: 'Access denied. You must be enrolled in this course.' });
         }
 
-        // Avoid adding duplicates to progress tracking array
         if (!enrollment.completedLessons.includes(lessonId)) {
             enrollment.completedLessons.push(lessonId);
             await enrollment.save();

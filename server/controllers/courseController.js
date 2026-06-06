@@ -1,18 +1,17 @@
 const Course = require('../models/Course');
 
-// @desc    Get all courses (with Search, Filter, Pagination)
+// @desc    Get all courses (with Search, Category Filter, Pagination, Admin approval management)
 // @route   GET /api/courses
-// @access  Public
+// @access  Public (Filtered) / Private Admin (Unfiltered)
 const getCourses = async (req, res) => {
     try {
-        // 1. Copy req.query to avoid mutating the original object
         const queryObj = { ...req.query };
 
-        // Exclude fields used for advanced processing from basic matching
+        // Exclude specific structural parameters from basic fields filtering execution
         const excludeFields = ['search', 'page', 'limit', 'sort'];
         excludeFields.forEach(param => delete queryObj[param]);
 
-        // 2. Add Search capability (partial text search on title or description)
+        // 1. Partial global search execution on Title/Description fields
         if (req.query.search) {
             queryObj.$or = [
                 { title: { $regex: req.query.search, $options: 'i' } },
@@ -20,10 +19,16 @@ const getCourses = async (req, res) => {
             ];
         }
 
-        // 3. Build the query object
+        // 2. Admin Oversight Filtering: If user is not an Admin, show ONLY approved courses.
+        // Assumes your validation auth middleware attaches req.user
+        if (!req.user || req.user.role !== 'admin') {
+            queryObj.isAdminApproved = true;
+        }
+
+        // 3. Construct baseline search execution context
         let query = Course.find(queryObj);
 
-        // 4. Sorting (defaults to newest first)
+        // 4. Sort handling
         if (req.query.sort) {
             const sortBy = req.query.sort.split(',').join(' ');
             query = query.sort(sortBy);
@@ -31,15 +36,17 @@ const getCourses = async (req, res) => {
             query = query.sort('-createdAt');
         }
 
-        // 5. Pagination Math
+        // 5. Pagination Core Logic
         const page = parseInt(req.query.page, 10) || 1;
         const limit = parseInt(req.query.limit, 10) || 10;
         const startIndex = (page - 1) * limit;
+
+        // Execute dynamic document counts based on operational object conditions
         const total = await Course.countDocuments(queryObj);
 
         query = query.skip(startIndex).limit(limit);
 
-        // Executing query
+        // Execute query execution
         const courses = await query;
 
         res.status(200).json({
@@ -67,6 +74,12 @@ const getCourse = async (req, res) => {
         if (!course) {
             return res.status(404).json({ message: 'Course not found' });
         }
+
+        // Prevent standard users from accessing unapproved courses directly via ID manipulation
+        if (!course.isAdminApproved && (!req.user || req.user.role !== 'admin')) {
+            return res.status(403).json({ message: 'This course is awaiting administrator approval.' });
+        }
+
         res.status(200).json({ success: true, data: course });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -78,8 +91,12 @@ const getCourse = async (req, res) => {
 // @access  Private/Admin
 const createCourse = async (req, res) => {
     try {
-        // Associate the logged-in admin user ID with the course creation tracking
         req.body.createdBy = req.user.id;
+
+        // If an admin creates a course, auto-approve it; otherwise leave default (false)
+        if (req.user.role === 'admin') {
+            req.body.isAdminApproved = true;
+        }
 
         const course = await Course.create(req.body);
         res.status(201).json({ success: true, data: course });
@@ -88,7 +105,7 @@ const createCourse = async (req, res) => {
     }
 };
 
-// @desc    Update course
+// @desc    Update course (Enables Admin Approval Toggle)
 // @route   PUT /api/courses/:id
 // @access  Private/Admin
 const updateCourse = async (req, res) => {

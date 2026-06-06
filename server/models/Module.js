@@ -6,13 +6,11 @@ const ModuleSchema = new mongoose.Schema(
             type: String,
             required: [true, 'Please add a module title']
         },
-
         course: {
             type: mongoose.Schema.ObjectId,
             ref: 'Course',
             required: true
         },
-
         order: {
             type: Number,
             default: 1
@@ -20,6 +18,7 @@ const ModuleSchema = new mongoose.Schema(
     },
     {
         timestamps: true
-    });
+    }
+);
 
 module.exports = mongoose.model('Module', ModuleSchema);

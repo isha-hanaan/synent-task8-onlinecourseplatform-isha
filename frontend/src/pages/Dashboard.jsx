@@ -14,9 +14,12 @@ const Dashboard = () => {
         const fetchPurchasedTracks = async () => {
             if (!token) return;
             try {
-                const { data } = await api.get('http://127.0.0.1:5000/api/enrollments', {
+                const { data } = await api.get('/api/enrollments', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
+
+                console.log(data.data);
+
                 setEnrollments(data.data || []);
             } catch (error) {
                 console.error("Failed parsing user enrollment registries:", error);
@@ -99,19 +102,38 @@ const Dashboard = () => {
 
                                     {/* Visual dynamic progress engine tracking lesson array lengths */}
                                     <div style={{ background: '#e9ecef', borderRadius: '4px', height: '8px', overflow: 'hidden', marginBottom: '0.5rem' }}>
-                                        <div style={{
-                                            background: '#28a745',
-                                            height: '100%',
-                                            width: item.completedLessons?.length > 0 ? `${Math.min(item.completedLessons.length * 20, 100)}%` : '0%'
-                                        }} />
-                                    </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#555' }}>
-                                        <span>Status: <strong style={{ color: '#28a745' }}>Enrolled</strong></span>
-                                        <span>{item.completedLessons?.length || 0} Lessons Finished</span>
+                                        <div
+                                            style={{
+                                                background: '#28a745',
+                                                height: '100%',
+                                                width: `${item.progressPercentage}%`
+                                            }} />
                                     </div>
 
+                                    <p
+                                        style={{
+                                            marginTop: '8px',
+                                            color: '#666',
+                                            fontSize: '0.9rem'
+                                        }}
+                                    >
+                                        {item.progressPercentage}% Complete
+                                    </p>
+
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#555' }}>
+                                        <span>Status: <strong style={{ color: '#28a745' }}>Enrolled</strong></span>
+                                        <span>
+                                            {item.completedCount} / {item.totalLessons} Lessons
+                                        </span>                                    </div>
+
                                     <button
-                                        onClick={() => navigate(`/learn/${item.course._id}`)}
+                                        onClick={() =>
+                                            navigate(`/learn/${item.course._id}`, {
+                                                state: {
+                                                    completedLessons: item.completedLessons
+                                                }
+                                            })
+                                        }
                                         style={{
                                             marginTop: '15px',
                                             padding: '10px',
@@ -123,7 +145,9 @@ const Dashboard = () => {
                                             cursor: 'pointer'
                                         }}
                                     >
-                                        Continue Learning
+                                        {item.progressPercentage === 100
+                                            ? 'Review Course'
+                                            : 'Continue Learning'}
                                     </button>
 
                                 </div>

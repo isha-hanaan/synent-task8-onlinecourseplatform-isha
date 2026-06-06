@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// Protect routes - verify JWT token
+// Enforce strictly protected route operations (Verify Token Required)
 const protect = async (req, res, next) => {
     try {
         let token;
@@ -11,30 +11,49 @@ const protect = async (req, res, next) => {
         }
 
         if (!token) {
-            return res.status(401).json({ message: 'Not authorized, no token' });
+            return res.status(401).json({ message: 'Not authorized, token missing' });
         }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.user = await User.findById(decoded.id).select('-password');
 
         if (!req.user) {
-            return res.status(401).json({ message: 'User not found' });
+            return res.status(401).json({ message: 'User reference not found' });
         }
 
         if (!req.user.isVerified) {
-            return res.status(401).json({
-                message: 'Please verify your email first'
-            });
+            return res.status(401).json({ message: 'Please verify your email first' });
         }
 
         next();
-
     } catch (error) {
         return res.status(401).json({ message: 'Token invalid or expired' });
     }
 };
 
-// Authorize roles - check if user has required role
+// Optional authorization interceptor: extracts profile data if token is provided, otherwise skips without failing
+const optionalProtect = async (req, res, next) => {
+    try {
+        let token;
+        if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+            token = req.headers.authorization.split(' ')[1];
+        }
+
+        if (token) {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            const userObj = await User.findById(decoded.id).select('-password');
+            if (userObj && userObj.isVerified) {
+                req.user = userObj; // Bind data profile if validated successfully
+            }
+        }
+        next();
+    } catch (error) {
+        // Fall through gracefully without assigning req.user profile context tracking state
+        next();
+    }
+};
+
+// Authorize contextual role validations
 const authorize = (...roles) => {
     return (req, res, next) => {
         try {
@@ -43,7 +62,7 @@ const authorize = (...roles) => {
             }
 
             if (!roles.includes(req.user.role)) {
-                return res.status(403).json({ message: `Role '${req.user.role}' is not allowed` });
+                return res.status(403).json({ message: `Role '${req.user.role}' is not allowed to access this action` });
             }
 
             next();
@@ -55,5 +74,6 @@ const authorize = (...roles) => {
 
 module.exports = {
     protect,
+    optionalProtect, // Exported to support flexible public search parameters logic
     authorize
 };

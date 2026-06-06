@@ -23,11 +23,37 @@ const CourseSchema = new mongoose.Schema({
     category: {
         type: String,
         required: [true, 'Please add a category'],
-        enum: ['Web Development', 'Data Science', 'UI/UX Design', 'Mobile Development', 'Cybersecurity', 'Other']
+        enum: [
+            'Web Development',
+            'Backend Development',
+            'Data Science',
+            'UI/UX Design',
+            'Design',
+            'Mobile Development',
+            'Cybersecurity',
+            'Other'
+        ]
+    },
+    level: {
+        type: String,
+        enum: ['Beginner', 'Intermediate', 'Advanced'],
+        default: 'Beginner'
+    },
+    language: {
+        type: String,
+        default: 'English'
+    },
+    totalDuration: {
+        type: String,
+        default: '0m'
     },
     thumbnail: {
         type: String,
         default: 'no-photo.jpg'
+    },
+    isAdminApproved: {
+        type: Boolean,
+        default: false
     },
     createdBy: {
         type: mongoose.Schema.ObjectId,

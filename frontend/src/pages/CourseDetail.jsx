@@ -1,20 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
+
+const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY_ID;
 
 const CourseDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { user, token } = useAuth();
-    const [course, setCourse] = useState(null);
+    const [course, setCourse] = useState(null); // 💡 Start as null instead of empty object
     const [loading, setLoading] = useState(true);
+    const [paying, setPaying] = useState(false);
 
     useEffect(() => {
         const fetchCourseDetails = async () => {
             try {
-                const { data } = await api.get(`http://127.0.0.1:5000/api/courses/${id}`);
-                setCourse(data.data);
+                const { data } = await api.get(`/api/courses/${id}`);
+                setCourse(data?.data || null);
             } catch (error) {
                 console.error("Error fetching course metrics:", error);
             } finally {
@@ -24,9 +27,20 @@ const CourseDetail = () => {
         fetchCourseDetails();
     }, [id]);
 
-    // Helper utility injects the dynamic Razorpay payment script overlay into the HTML layout
     const loadRazorpayScript = () => {
         return new Promise((resolve) => {
+            if (window.Razorpay) return resolve(true);
+
+            const existingScript = document.querySelector(
+                'script[src="https://checkout.razorpay.com/v1/checkout.js"]'
+            );
+
+            if (existingScript) {
+                existingScript.onload = () => resolve(true);
+                existingScript.onerror = () => resolve(false);
+                return;
+            }
+
             const script = document.createElement('script');
             script.src = 'https://checkout.razorpay.com/v1/checkout.js';
             script.onload = () => resolve(true);
@@ -41,83 +55,86 @@ const CourseDetail = () => {
             return navigate('/login');
         }
 
+        if (paying || !course?._id) return;
+        setPaying(true);
+
         try {
-            const config = { headers: { Authorization: `Bearer ${token}` } };
+            // 💡 Cleanup: Rely on the shared Axios instance headers managed by your AuthContext
+            const orderResponse = await api.post('/api/enrollments/order', {
+                courseId: course._id
+            });
 
-            // 1. Register the payment order on your backend
-            const orderResponse = await axios.post(
-                'http://127.0.0.1:5000/api/enrollments/order',
-                { courseId: course._id },
-                config
-            );
+            const { order_id, amount, currency, mode } = orderResponse.data;
+            const isMockMode = mode === "mock";
 
-            const { order_id, amount } = orderResponse.data;
-
-            // 2. Attempt to load the official Razorpay popup script
-
-            const scriptLoaded = await loadRazorpayScript();
-            const testKeyExist = import.meta.env.VITE_RAZORPAY_KEY_ID;
-
-            if (scriptLoaded && testKeyExist && testKeyExist !== "your_razorpay_key_id_here") {
-                // OPTION A: If Razorpay keys exist later, use the real modal
-                const checkoutOptions = {
-                    key: testKeyExist,
-                    amount: amount,
-                    currency: "INR",
-                    name: "ZenithAcad Portal",
-                    description: `Purchase for: ${course.title}`,
-                    order_id: order_id,
-                    handler: async function (response) {
-                        const verifyPayload = {
-                            razorpay_order_id: response.razorpay_order_id,
-                            razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_signature: response.razorpay_signature
-                        };
-                        const verifyRes = await axios.post('http://127.0.0.1:5000/api/enrollments/verify', verifyPayload, config);
-                        if (verifyRes.data.success) {
-                            alert("🎉 Payment Successful! Course unlocked.");
-                            navigate('/dashboard');
-                        }
-                    },
-                    prefill: { name: user.name, email: user.email },
-                    theme: { color: "#007bff" }
-                };
-                const paymentWindowInstance = new window.Razorpay(checkoutOptions);
-                paymentWindowInstance.open();
-            } else {
-                // OPTION B: Account-Free Developer Sandbox Mode (Perfect for testing!)
-                const userConfirmed = window.confirm(
-                    `✨ ZenithAcad Sandbox Gateway ✨\n\nCourse: ${course.title}\nAmount: ₹${course.price}\nOrder ID: ${order_id}\n\nClick "OK" to simulate a successful payment authorization.`
+            if (isMockMode) {
+                const confirmMock = window.confirm(
+                    `🧪 TEST MODE ACTIVE\n\nCourse: ${course.title}\nAmount: ₹${course.price}\n\nSimulate successful payment?`
                 );
 
-                if (userConfirmed) {
-                    // Generate a fake success signature that bypasses backend check constraints for testing
-                    const mockVerifyPayload = {
+                if (confirmMock) {
+                    const verifyRes = await api.post('/api/enrollments/verify', {
                         razorpay_order_id: order_id,
-                        razorpay_payment_id: "pay_mock_" + Math.random().toString(36).substring(2, 11),
-                        isMockSandboxSuccess: true // Tells backend to automatically approve
-                    };
-
-                    const verifyRes = await axios.post('http://127.0.0.1:5000/api/enrollments/verify', mockVerifyPayload, config);
+                        razorpay_payment_id: "pay_mock_" + Date.now(),
+                        isMockSandboxSuccess: true
+                    });
 
                     if (verifyRes.data.success) {
-                        alert("🎉 Sandbox Payment Authorized! Course unlocked successfully.");
+                        alert("🎉 Mock Payment Successful!");
                         navigate('/dashboard');
                     }
                 }
+                return;
             }
 
+            const scriptLoaded = await loadRazorpayScript();
+            if (!scriptLoaded) {
+                alert("Razorpay SDK failed to load");
+                return;
+            }
+
+            const options = {
+                key: RAZORPAY_KEY,
+                amount: amount,
+                currency: currency || "INR",
+                name: "ZenithAcad Portal",
+                description: `Purchase: ${course.title}`,
+                order_id: order_id,
+                handler: async function (response) {
+                    try {
+                        const verifyRes = await api.post('/api/enrollments/verify', {
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature
+                        });
+
+                        if (verifyRes.data.success) {
+                            alert("🎉 Payment Successful!");
+                            navigate('/dashboard');
+                        }
+                    } catch (err) {
+                        alert("Payment verification failed");
+                    }
+                },
+                prefill: { name: user.name, email: user.email },
+                theme: { color: "#007bff" }
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.open();
+
         } catch (error) {
-            alert(error.response?.data?.message || "Order tracking registration failed.");
+            alert(error.response?.data?.message || "Order creation failed.");
+        } finally {
+            setPaying(false);
         }
     };
 
-
-    if (loading) return <p style={{ padding: '2rem' }}>Parsing item schemas...</p>;
-    if (!course) return <p style={{ padding: '2rem' }}>Target item data matching ID could not be parsed.</p>;
+    if (loading) return <p style={{ padding: '2rem' }}>Loading course...</p>;
+    if (!course) return <p style={{ padding: '2rem' }}>Course not found.</p>;
 
     return (
-        <div style={{ maxWidth: '900px', margin: '2rem auto', padding: '0 1rem' }}>
+        <div style={{ maxWidth: '900px', margin: '2rem auto', padding: '0 1rem', fontFamily: 'sans-serif' }}>
             <div style={{ border: '1px solid #eee', borderRadius: '12px', padding: '2rem', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
                 <h2>{course.title}</h2>
                 <p style={{ color: '#555', fontSize: '1.1rem', lineHeight: '1.6' }}>{course.description}</p>
@@ -130,9 +147,18 @@ const CourseDetail = () => {
                     </div>
                     <button
                         onClick={handleCheckoutPayment}
-                        style={{ backgroundColor: '#28a745', color: 'white', fontSize: '1.1rem', border: 'none', padding: '0.75rem 2rem', borderRadius: '6px', cursor: 'pointer' }}
+                        disabled={paying}
+                        style={{
+                            backgroundColor: paying ? '#6c757d' : '#28a745',
+                            color: 'white',
+                            fontSize: '1.1rem',
+                            border: 'none',
+                            padding: '0.75rem 2rem',
+                            borderRadius: '6px',
+                            cursor: paying ? 'not-allowed' : 'pointer'
+                        }}
                     >
-                        Enroll & Pay Now
+                        {paying ? 'Processing...' : 'Enroll & Pay Now'}
                     </button>
                 </div>
             </div>

@@ -1,12 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import '../styles/AuthPages.css';
 
 const ForgotPassword = () => {
-   const { forgotPassword, loading, error } = useAuth();
+   const { forgotPassword, loading, error, clearError } = useAuth();
    const [email, setEmail] = useState('');
    const [success, setSuccess] = useState('');
    const [localError, setLocalError] = useState('');
+
+   // 💡 BUG FIX: Clean up stale errors from other auth screens when this view mounts
+   useEffect(() => {
+      clearError();
+   }, []);
 
    const handleSubmit = async (e) => {
       e.preventDefault();
@@ -14,18 +19,24 @@ const ForgotPassword = () => {
       setSuccess('');
 
       if (!email) {
-         setLocalError('Please enter your email');
+         setLocalError('Please enter your email address.');
          return;
       }
 
       try {
          const result = await forgotPassword(email);
-         setSuccess(result.message);
+         setSuccess(result?.message || 'Reset link sent successfully!');
          setEmail('');
       } catch (err) {
-         setLocalError(err.response?.data?.message || 'Failed to send reset email');
+         // If our context didn't catch the error message, handle fallback text string mapping
+         if (!error) {
+            setLocalError(err.response?.data?.message || 'Failed to send reset email');
+         }
       }
    };
+
+   // Display localized validation errors if present; fallback to API network exceptions
+   const activeErrorMsg = localError || error;
 
    return (
       <div className="auth-container">
@@ -33,9 +44,9 @@ const ForgotPassword = () => {
             <h1>Reset Password</h1>
             <p className="auth-subtitle">Enter your email to receive a reset link</p>
 
-            {(error || localError) && (
+            {activeErrorMsg && (
                <div className="error-message">
-                  {error || localError}
+                  {activeErrorMsg}
                </div>
             )}
 

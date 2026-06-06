@@ -13,9 +13,11 @@ const Courses = () => {
         const fetchCourses = async () => {
             try {
                 setLoading(true);
-                // Construct query parameters matching your backend specifications
-                let url = `http://127.0.0.1:5000/api/courses?search=${search}`;
-                if (category) url += `&category=${category}`;
+
+                // 💡 BUG FIX: Removed hardcoded localhost:5000 absolute string. 
+                // Let the api service structure hook your env VITE_API_URL variables natively.
+                let url = `/api/courses?search=${encodeURIComponent(search)}`;
+                if (category) url += `&category=${encodeURIComponent(category)}`;
 
                 const { data } = await api.get(url);
                 setCourses(data.data || []);
@@ -26,7 +28,6 @@ const Courses = () => {
             }
         };
 
-        // Debounce search requests slightly to optimize server hits
         const delayDebounce = setTimeout(() => {
             fetchCourses();
         }, 400);
@@ -35,10 +36,9 @@ const Courses = () => {
     }, [search, category]);
 
     return (
-        <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
+        <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto', fontFamily: 'sans-serif' }}>
             <h2>Explore Available Courses</h2>
 
-            {/* Filters panel */}
             <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
                 <input
                     type="text"
@@ -50,11 +50,7 @@ const Courses = () => {
                 <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    style={{
-                        padding: '0.75rem',
-                        borderRadius: '4px',
-                        border: '1px solid #ccc'
-                    }}
+                    style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc', background: '#fff' }}
                 >
                     <option value="">All Categories</option>
                     <option value="Web Development">Web Development</option>
@@ -66,7 +62,6 @@ const Courses = () => {
                 </select>
             </div>
 
-            {/* Course Display Grid */}
             {loading ? (
                 <p>Loading course catalogue...</p>
             ) : courses.length === 0 ? (
@@ -76,12 +71,12 @@ const Courses = () => {
                     {courses.map((course) => (
                         <div
                             key={course._id}
-                            style={{ border: '1px solid #ddd', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' }}
+                            style={{ border: '1px solid #ddd', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 2px 5px rgba(0,0,0,0.05)', background: '#fff' }}
                         >
                             <div style={{ padding: '1.5rem' }}>
                                 <span style={{ fontSize: '0.8rem', color: '#007bff', fontWeight: 'bold', textTransform: 'uppercase' }}>{course.category}</span>
-                                <h3 style={{ margin: '0.5rem 0' }}>{course.title}</h3>
-                                <p style={{ color: '#666', fontSize: '0.9rem', height: '60px', overflow: 'hidden' }}>{course.description}</p>
+                                <h3 style={{ margin: '0.5rem 0', fontSize: '1.2rem' }}>{course.title}</h3>
+                                <p style={{ color: '#666', fontSize: '0.9rem', height: '60px', overflow: 'hidden', lineHeight: '1.4' }}>{course.description}</p>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.5rem' }}>
                                     <span style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>₹{course.price}</span>
                                     <button

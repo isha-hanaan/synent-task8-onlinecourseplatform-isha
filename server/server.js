@@ -1,13 +1,19 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db.js');
 const errorHandler = require('./middleware/errorMiddleware');
-const authRoutes = require('./routes/authRoutes'); // Imported explicitly here
 
-require('dotenv').config();
+// Explicit route imports grouped together
+const authRoutes = require('./routes/authRoutes');
+const courseRoutes = require('./routes/courseRoutes');
+const moduleRoutes = require('./routes/moduleRoutes');
+const lessonRoutes = require('./routes/lessonRoutes');
+const enrollmentRoutes = require('./routes/enrollmentRoutes');
 
 const app = express();
 
+// Connect Database
 connectDB();
 
 // Middleware
@@ -18,18 +24,12 @@ app.use(cors({
 
 app.use(express.json());
 
-// Routes
+// Routes Mounting
 app.use('/api/auth', authRoutes);
-
-// Course Routes Mounting
-app.use('/api/courses', require('./routes/courseRoutes'));
-
-app.use('/api/modules', require('./routes/moduleRoutes'));
-
-app.use('/api/lessons', require('./routes/lessonRoutes'));
-
-// Payment and Enrollment Routes Mounting
-app.use('/api/enrollments', require('./routes/enrollmentRoutes'));
+app.use('/api/courses', courseRoutes);
+app.use('/api/modules', moduleRoutes);
+app.use('/api/lessons', lessonRoutes);
+app.use('/api/enrollments', enrollmentRoutes);
 
 // Error Handler (must be last)
 app.use(errorHandler);

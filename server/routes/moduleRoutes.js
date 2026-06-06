@@ -4,22 +4,14 @@ const {
     createModule
 } = require('../controllers/moduleController');
 
-const {
-    protect,
-    authorize
-} = require('../middleware/authMiddleware');
+const { protect, authorize } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-// Public route
-router.get('/:courseId', getModulesByCourse);
+// Protected route (access controlled inside controller based on student enrollment status)
+router.get('/:courseId', protect, getModulesByCourse);
 
-// Admin only
-router.post(
-    '/',
-    protect,
-    authorize('admin'),
-    createModule
-);
+// Admin management operations
+router.post('/', protect, authorize('admin'), createModule);
 
 module.exports = router;
