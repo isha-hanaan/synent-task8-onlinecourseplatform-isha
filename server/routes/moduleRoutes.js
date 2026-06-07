@@ -1,17 +1,48 @@
 const express = require('express');
 const {
     getModulesByCourse,
-    createModule
+    getAllModules,
+    createModule,
+    updateModule,
+    deleteModule
 } = require('../controllers/moduleController');
 
 const { protect, authorize } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-// Protected route (access controlled inside controller based on student enrollment status)
-router.get('/:courseId', protect, getModulesByCourse);
+router.get(
+    '/',
+    protect,
+    authorize('admin'),
+    getAllModules
+);
 
-// Admin management operations
-router.post('/', protect, authorize('admin'), createModule);
+router.get(
+    '/:courseId',
+    protect,
+    getModulesByCourse
+);
+
+router.post(
+    '/',
+    protect,
+    authorize('admin'),
+    createModule
+);
+
+router.put(
+    '/:id',
+    protect,
+    authorize('admin'),
+    updateModule
+);
+
+router.delete(
+    '/:id',
+    protect,
+    authorize('admin'),
+    deleteModule
+);
 
 module.exports = router;

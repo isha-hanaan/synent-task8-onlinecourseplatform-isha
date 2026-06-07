@@ -36,6 +36,32 @@ const getModulesByCourse = async (req, res) => {
     }
 };
 
+// @desc    Get all modules
+// @route   GET /api/modules
+// @access  Private/Admin
+
+const getAllModules = async (req, res) => {
+    try {
+
+        const modules = await Module.find()
+            .populate('course', 'title')
+            .sort('createdAt');
+
+        res.status(200).json({
+            success: true,
+            count: modules.length,
+            data: modules
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+};
+
+
+
 // @desc    Create module
 // @route   POST /api/modules
 // @access  Private/Admin
@@ -48,7 +74,71 @@ const createModule = async (req, res) => {
     }
 };
 
+// @desc    Update module
+// @route   PUT /api/modules/:id
+// @access  Private/Admin
+const updateModule = async (req, res) => {
+    try {
+        const moduleItem = await Module.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            {
+                new: true,
+                runValidators: true
+            }
+        );
+
+        if (!moduleItem) {
+            return res.status(404).json({
+                message: 'Module not found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: moduleItem
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+};
+
+
+// @desc    Delete module
+// @route   DELETE /api/modules/:id
+// @access  Private/Admin
+const deleteModule = async (req, res) => {
+    try {
+
+        const moduleItem = await Module.findById(req.params.id);
+
+        if (!moduleItem) {
+            return res.status(404).json({
+                message: 'Module not found'
+            });
+        }
+
+        await moduleItem.deleteOne();
+
+        res.status(200).json({
+            success: true,
+            message: 'Module deleted'
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+};
+
 module.exports = {
     getModulesByCourse,
-    createModule
+    getAllModules,
+    createModule,
+    updateModule,
+    deleteModule
 };

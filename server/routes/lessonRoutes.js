@@ -19,3 +19,4 @@ router.put('/:id', protect, authorize('admin'), updateLesson);
 router.delete('/:id', protect, authorize('admin'), deleteLesson);
 
 module.exports = router;
+

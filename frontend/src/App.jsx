@@ -17,7 +17,12 @@ import ResetPassword from './pages/ResetPassword';
 import Courses from './pages/Courses';       // Added Phase 5
 import CourseDetail from './pages/CourseDetail'; // Added Phase 5
 import LearningPage from './pages/LearningPage';
-import LearnCourse from './pages/LearnCourse';
+import AdminDashboard from './pages/AdminDashboard';
+import AddCourse from './pages/AddCourse';
+import AdminCourses from './pages/AdminCourses';
+import EditCourse from './pages/EditCourse';
+import AddModule from './pages/AddModule';
+import AddLesson from './pages/AddLesson';
 
 function App() {
 
@@ -46,17 +51,66 @@ function App() {
                     />
 
                     <Route
+                        path="/admin"
+                        element={
+                            <ProtectedRoute>
+                                <AdminDashboard />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/admin/add-course"
+                        element={
+                            <ProtectedRoute>
+                                <AddCourse />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/admin/courses"
+                        element={
+                            <ProtectedRoute>
+                                <AdminCourses />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/admin/edit-course/:id"
+                        element={
+                            <ProtectedRoute>
+                                <EditCourse />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/admin/add-module"
+                        element={
+                            <ProtectedRoute>
+                                <AddModule />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/admin/add-lesson"
+                        element={
+                            <ProtectedRoute>
+                                <AddLesson />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
                         path="/learn/:courseId"
                         element={
                             <ProtectedRoute>
                                 <LearningPage />
                             </ProtectedRoute>
                         }
-                    />
-
-                    <Route
-                        path="/learn/:id"
-                        element={<LearnCourse />}
                     />
 
                     {/* Default redirect - sends unauthenticated users to the marketplace */}
