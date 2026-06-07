@@ -58,20 +58,45 @@ const LearningPage = () => {
 
             setModules(modulesWithLessons);
 
+            const enrollmentRes = await api.get(
+                '/api/enrollments',
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+
+            const currentEnrollment = enrollmentRes.data.data.find(
+                item => item.course._id === courseId
+            );
+
+            console.log(currentEnrollment);
+
+            if (currentEnrollment) {
+                setCompletedLessons(currentEnrollment.completedLessons || []);
+            }
+
+
+
             const fetchedLessons = modulesWithLessons.flatMap(
                 module => module.lessons
             );
 
+            const completed =
+                currentEnrollment?.completedLessons || [];
+
             const nextLesson = fetchedLessons.find(
-                lesson => !completedLessons.includes(lesson._id)
+                lesson => !completed.includes(lesson._id)
             );
 
             if (nextLesson) {
                 setSelectedLesson(nextLesson);
             } else if (fetchedLessons.length > 0) {
-                // all lessons completed, default to first
                 setSelectedLesson(fetchedLessons[0]);
             }
+
+
 
         } catch (error) {
             console.error(error);
@@ -163,12 +188,33 @@ const LearningPage = () => {
                                 title={selectedLesson.title}
                                 allowFullScreen
                             />
+
                             <button
                                 onClick={handleCompleteLesson}
-                                style={{ marginTop: '20px', padding: '12px 20px' }}
+                                disabled={completedLessons.includes(selectedLesson?._id)}
+                                style={{
+                                    marginTop: '20px',
+                                    padding: '12px 20px',
+                                    backgroundColor:
+                                        completedLessons.includes(selectedLesson?._id)
+                                            ? '#28a745'
+                                            : '#2563eb',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    cursor:
+                                        completedLessons.includes(selectedLesson?._id)
+                                            ? 'default'
+                                            : 'pointer'
+                                }}
                             >
-                                Mark Lesson Complete
+                                {
+                                    completedLessons.includes(selectedLesson?._id)
+                                        ? '✓ Completed'
+                                        : 'Mark Lesson Complete'
+                                }
                             </button>
+
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
                                 <button
                                     disabled={currentIndex <= 0}

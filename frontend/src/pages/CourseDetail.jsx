@@ -12,12 +12,24 @@ const CourseDetail = () => {
     const [course, setCourse] = useState(null); // 💡 Start as null instead of empty object
     const [loading, setLoading] = useState(true);
     const [paying, setPaying] = useState(false);
+    const [alreadyEnrolled, setAlreadyEnrolled] = useState(false);
 
     useEffect(() => {
         const fetchCourseDetails = async () => {
             try {
                 const { data } = await api.get(`/api/courses/${id}`);
                 setCourse(data?.data || null);
+
+                if (token) {
+                    const enrollmentsRes = await api.get('/api/enrollments');
+
+                    const enrolled = enrollmentsRes.data.data.some(
+                        (item) => item.course._id === id
+                    );
+
+                    setAlreadyEnrolled(enrolled);
+                }
+
             } catch (error) {
                 console.error("Error fetching course metrics:", error);
             } finally {
@@ -145,11 +157,23 @@ const CourseDetail = () => {
                         <p style={{ margin: '0', color: '#666' }}>Instructor: <strong>{course.instructor}</strong></p>
                         <p style={{ margin: '0.5rem 0 0 0', color: '#28a745', fontSize: '1.4rem', fontWeight: 'bold' }}>₹{course.price}</p>
                     </div>
+
+
                     <button
-                        onClick={handleCheckoutPayment}
+                        onClick={() => {
+                            if (alreadyEnrolled) {
+                                navigate(`/learn/${course._id}`);
+                            } else {
+                                handleCheckoutPayment();
+                            }
+                        }}
                         disabled={paying}
                         style={{
-                            backgroundColor: paying ? '#6c757d' : '#28a745',
+                            backgroundColor: paying
+                                ? '#6c757d'
+                                : alreadyEnrolled
+                                    ? '#007bff'
+                                    : '#28a745',
                             color: 'white',
                             fontSize: '1.1rem',
                             border: 'none',
@@ -158,8 +182,14 @@ const CourseDetail = () => {
                             cursor: paying ? 'not-allowed' : 'pointer'
                         }}
                     >
-                        {paying ? 'Processing...' : 'Enroll & Pay Now'}
+                        {paying
+                            ? 'Processing...'
+                            : alreadyEnrolled
+                                ? 'Go To Course'
+                                : 'Enroll & Pay Now'}
                     </button>
+
+
                 </div>
             </div>
         </div>

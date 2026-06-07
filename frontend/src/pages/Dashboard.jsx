@@ -3,6 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import '../styles/Dashboard.css';
+import Sidebar from '../components/Sidebar';
+import Header from '../components/Header';
+import WelcomeBanner from '../components/WelcomeBanner';
+import CourseCard from '../components/CourseCard';
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -14,9 +18,15 @@ const Dashboard = () => {
         const fetchPurchasedTracks = async () => {
             if (!token) return;
             try {
+
+                console.log("Current User:", user);
+                console.log("Token:", token);
+
                 const { data } = await api.get('/api/enrollments', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
+
+                console.log("Enrollments Response:", data);
 
                 console.log(data.data);
 
@@ -36,137 +46,53 @@ const Dashboard = () => {
         navigate('/login');
     };
 
+
+
+
+
     return (
-        <div className="dashboard-container">
-            <nav className="dashboard-nav">
-                <div className="nav-left">
-                    <h1 onClick={() => navigate('/courses')} style={{ cursor: 'pointer' }}>ZenithAcad</h1>
-                </div>
-                <div className="nav-right">
-                    <span className="user-info">Welcome, {user?.name}!</span>
-                    <button onClick={handleLogout} className="logout-btn">
-                        Logout
-                    </button>
-                </div>
-            </nav>
+        <div className="dashboard-layout">
 
-            <div className="dashboard-content">
-                <h2>Student Dashboard</h2>
+            <Sidebar />
 
-                {/* Main Dynamic Cards Panel */}
-                <div className="dashboard-cards">
-                    <div className="card">
-                        <h3>📚 Enrolled Courses</h3>
-                        <p style={{ fontSize: '2rem', fontWeight: 'bold', margin: '0.5rem 0' }}>
-                            {loading ? '...' : enrollments.length}
-                        </p>
-                    </div>
+            <div className="main-content">
 
-                    <div className="card">
-                        <h3>📈 Overall Progress</h3>
-                        <p style={{ margin: '0.5rem 0', color: '#666' }}>
-                            {enrollments.length === 0
-                                ? 'No courses started'
-                                : `${enrollments.filter(e => e.completedLessons?.length > 0).length} Course(s) in progress`
-                            }
-                        </p>
-                    </div>
+                <Header user={user} />
 
-                    <div className="card" onClick={() => navigate('/courses')} style={{ cursor: 'pointer', transition: 'transform 0.2s' }}>
-                        <h3>🎓 Browse Courses</h3>
-                        <p style={{ color: '#007bff', textDecoration: 'underline' }}>Explore Marketplace →</p>
-                    </div>
+                <WelcomeBanner user={user} />
 
-                    <div className="card">
-                        <h3>⚙️ Account Status</h3>
-                        <p style={{ color: '#28a745', fontWeight: 'bold' }}>Verified Active</p>
-                    </div>
-                </div>
+                <div className="courses-section">
 
-                {/* Course Access Progress Blocks Layout */}
-                <div style={{ marginTop: '2.5rem' }}>
-                    <h3>My Live Curriculum</h3>
+                    <h2>Your Courses</h2>
+
                     {loading ? (
-                        <p>Parsing active user data...</p>
+                        <p>Loading...</p>
                     ) : enrollments.length === 0 ? (
-                        <div style={{ padding: '2rem', background: '#f9f9f9', borderRadius: '8px', border: '1px dashed #ccc', textAlign: 'center' }}>
-                            <p style={{ margin: 0, color: '#777' }}>You haven't purchased or enrolled in any courses yet.</p>
-                            <button onClick={() => navigate('/courses')} style={{ marginTop: '1rem', padding: '0.5rem 1rem', cursor: 'pointer' }}>Find a Course</button>
-                        </div>
+                        <p>No enrolled courses</p>
                     ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem', marginTop: '1rem' }}>
+                        <div className="courses-grid">
                             {enrollments.map((item) => (
-                                <div key={item._id} style={{ border: '1px solid #e0e0e0', borderRadius: '8px', padding: '1.25rem', background: '#fff' }}>
-                                    <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '1.1rem' }}>{item.course?.title}</h4>
-                                    <p style={{ color: '#666', fontSize: '0.85rem', margin: '0 0 1rem 0' }}>Instructor: {item.course?.instructor}</p>
-
-                                    {/* Visual dynamic progress engine tracking lesson array lengths */}
-                                    <div style={{ background: '#e9ecef', borderRadius: '4px', height: '8px', overflow: 'hidden', marginBottom: '0.5rem' }}>
-                                        <div
-                                            style={{
-                                                background: '#28a745',
-                                                height: '100%',
-                                                width: `${item.progressPercentage}%`
-                                            }} />
-                                    </div>
-
-                                    <p
-                                        style={{
-                                            marginTop: '8px',
-                                            color: '#666',
-                                            fontSize: '0.9rem'
-                                        }}
-                                    >
-                                        {item.progressPercentage}% Complete
-                                    </p>
-
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#555' }}>
-                                        <span>Status: <strong style={{ color: '#28a745' }}>Enrolled</strong></span>
-                                        <span>
-                                            {item.completedCount} / {item.totalLessons} Lessons
-                                        </span>                                    </div>
-
-                                    <button
-                                        onClick={() =>
-                                            navigate(`/learn/${item.course._id}`, {
-                                                state: {
-                                                    completedLessons: item.completedLessons
-                                                }
-                                            })
-                                        }
-                                        style={{
-                                            marginTop: '15px',
-                                            padding: '10px',
-                                            width: '100%',
-                                            background: '#007bff',
-                                            color: '#fff',
-                                            border: 'none',
-                                            borderRadius: '5px',
-                                            cursor: 'pointer'
-                                        }}
-                                    >
-                                        {item.progressPercentage === 100
-                                            ? 'Review Course'
-                                            : 'Continue Learning'}
-                                    </button>
-
-                                </div>
+                                <CourseCard
+                                    key={item._id}
+                                    item={item}
+                                    navigate={navigate}
+                                />
                             ))}
                         </div>
                     )}
+
+
                 </div>
 
-                {/* Static Account Information Block */}
-                <div className="dashboard-info" style={{ marginTop: '2.5rem' }}>
-                    <h3>Your Account Information</h3>
-                    <p><strong>Name:</strong> {user?.name}</p>
-                    <p><strong>Email:</strong> {user?.email}</p>
-                    <p><strong>Role:</strong> <span style={{ textTransform: 'capitalize' }}>{user?.role || 'Student'}</span></p>
-                    <p><strong>Member Since:</strong> Active</p>
-                </div>
             </div>
+
         </div>
     );
+
+
+
+
+
 };
 
 export default Dashboard;
