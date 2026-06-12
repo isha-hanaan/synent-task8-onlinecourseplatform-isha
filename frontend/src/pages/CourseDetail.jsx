@@ -1,15 +1,19 @@
+// frontend/src/pages/CourseDetail.jsx
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import '../styles/CourseDetail.css';
 
 const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY_ID;
 
 const CourseDetail = () => {
-    const { id } = useParams();
     const navigate = useNavigate();
+
+    const { id } = useParams();
     const { user, token } = useAuth();
-    const [course, setCourse] = useState(null); // 💡 Start as null instead of empty object
+    const [course, setCourse] = useState(null);
     const [loading, setLoading] = useState(true);
     const [paying, setPaying] = useState(false);
     const [alreadyEnrolled, setAlreadyEnrolled] = useState(false);
@@ -23,9 +27,9 @@ const CourseDetail = () => {
                 if (token) {
                     const enrollmentsRes = await api.get('/api/enrollments');
 
-                    const enrolled = enrollmentsRes.data.data.some(
-                        (item) => item.course._id === id
-                    );
+                    const enrolled = enrollmentsRes.data?.data?.some(
+                        (item) => item.course?._id === id
+                    ) || false;
 
                     setAlreadyEnrolled(enrolled);
                 }
@@ -37,7 +41,7 @@ const CourseDetail = () => {
             }
         };
         fetchCourseDetails();
-    }, [id]);
+    }, [id, token]);
 
     const loadRazorpayScript = () => {
         return new Promise((resolve) => {
@@ -64,14 +68,16 @@ const CourseDetail = () => {
     const handleCheckoutPayment = async () => {
         if (!user || !token) {
             alert("Please log in to enroll and purchase courses.");
-            return navigate('/login');
+
+            return navigate('/login', {
+                state: { from: `/courses/${id}` }
+            });
         }
 
         if (paying || !course?._id) return;
         setPaying(true);
 
         try {
-            // 💡 Cleanup: Rely on the shared Axios instance headers managed by your AuthContext
             const orderResponse = await api.post('/api/enrollments/order', {
                 courseId: course._id
             });
@@ -84,7 +90,12 @@ const CourseDetail = () => {
                     `🧪 TEST MODE ACTIVE\n\nCourse: ${course.title}\nAmount: ₹${course.price}\n\nSimulate successful payment?`
                 );
 
-                if (confirmMock) {
+                if (!confirmMock) {
+                    setPaying(false);
+                    return;
+                }
+
+                try {
                     const verifyRes = await api.post('/api/enrollments/verify', {
                         razorpay_order_id: order_id,
                         razorpay_payment_id: "pay_mock_" + Date.now(),
@@ -92,15 +103,24 @@ const CourseDetail = () => {
                     });
 
                     if (verifyRes.data.success) {
-                        alert("🎉 Mock Payment Successful!");
-                        navigate('/dashboard');
+                        setAlreadyEnrolled(true);
+
+                        alert("🎉 Payment Successful!");
+
+                        navigate(`/learn/${course._id}`);
                     }
+
+                } catch (err) {
+                    alert("Mock payment verification failed");
+                } finally {
+                    setPaying(false);
                 }
                 return;
             }
 
             const scriptLoaded = await loadRazorpayScript();
             if (!scriptLoaded) {
+                setPaying(false);
                 alert("Razorpay SDK failed to load");
                 return;
             }
@@ -121,45 +141,98 @@ const CourseDetail = () => {
                         });
 
                         if (verifyRes.data.success) {
+                            setAlreadyEnrolled(true);
+                            setPaying(false);
+
                             alert("🎉 Payment Successful!");
-                            navigate('/dashboard');
+
+                            navigate(`/learn/${course._id}`);
                         }
+
                     } catch (err) {
+                        setPaying(false);
                         alert("Payment verification failed");
                     }
                 },
                 prefill: { name: user.name, email: user.email },
-                theme: { color: "#007bff" }
+                theme: { color: "#007bff" },
+
+                modal: {
+                    ondismiss: function () {
+                        setPaying(false);
+                    }
+                }
             };
 
             const rzp = new window.Razorpay(options);
+
+            rzp.on('payment.failed', function (response) {
+                setPaying(false);
+
+                console.error(response.error);
+
+                alert(
+                    response.error.description ||
+                    "Payment failed. Please try again."
+                );
+            });
+
             rzp.open();
 
         } catch (error) {
-            alert(error.response?.data?.message || "Order creation failed.");
-        } finally {
             setPaying(false);
+            alert(error.response?.data?.message ||
+                "Order creation failed."
+            );
         }
     };
 
-    if (loading) return <p style={{ padding: '2rem' }}>Loading course...</p>;
-    if (!course) return <p style={{ padding: '2rem' }}>Course not found.</p>;
+    if (loading) return <div className="loading-state">
+        Loading course...
+    </div>;
+
+    if (!course)
+        return (
+            <div className="loading-state">
+                Course not found.
+            </div>
+        );
 
     return (
-        <div style={{ maxWidth: '900px', margin: '2rem auto', padding: '0 1rem', fontFamily: 'sans-serif' }}>
-            <div style={{ border: '1px solid #eee', borderRadius: '12px', padding: '2rem', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
-                <h2>{course.title}</h2>
-                <p style={{ color: '#555', fontSize: '1.1rem', lineHeight: '1.6' }}>{course.description}</p>
-                <hr style={{ border: '0', borderTop: '1px solid #eee', margin: '1.5rem 0' }} />
+        <div className="course-detail-page">
+            <div className="course-detail-header">
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                        <p style={{ margin: '0', color: '#666' }}>Instructor: <strong>{course.instructor}</strong></p>
-                        <p style={{ margin: '0.5rem 0 0 0', color: '#28a745', fontSize: '1.4rem', fontWeight: 'bold' }}>₹{course.price}</p>
-                    </div>
+                <button
+                    className="back-btn"
+                    onClick={() => navigate(-1)}
+                >
+                    ← Go Back
+                </button>
 
+            </div>
+
+            <div className="course-detail-card">
+                <div className="course-info">
+
+                    <h2>{course.title}</h2>
+
+                    <p>{course.description}</p>
+
+                    <hr />
+
+                    <p>Instructor: <strong>{course.instructor}</strong></p>
+
+                    <p>₹{Number(course.price || 0).toLocaleString('en-IN')}</p>
+
+                </div>
+
+                <div className="course-actions">
 
                     <button
+                        className={`course-action-btn ${alreadyEnrolled ? 'enrolled' : ''
+                            } ${paying ? 'processing' : ''
+                            }`}
+
                         onClick={() => {
                             if (alreadyEnrolled) {
                                 navigate(`/learn/${course._id}`);
@@ -168,19 +241,7 @@ const CourseDetail = () => {
                             }
                         }}
                         disabled={paying}
-                        style={{
-                            backgroundColor: paying
-                                ? '#6c757d'
-                                : alreadyEnrolled
-                                    ? '#007bff'
-                                    : '#28a745',
-                            color: 'white',
-                            fontSize: '1.1rem',
-                            border: 'none',
-                            padding: '0.75rem 2rem',
-                            borderRadius: '6px',
-                            cursor: paying ? 'not-allowed' : 'pointer'
-                        }}
+
                     >
                         {paying
                             ? 'Processing...'
@@ -189,10 +250,9 @@ const CourseDetail = () => {
                                 : 'Enroll & Pay Now'}
                     </button>
 
-
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

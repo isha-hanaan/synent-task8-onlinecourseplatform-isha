@@ -1,3 +1,5 @@
+/* frontend/src/App.jsx */
+
 import {
     BrowserRouter,
     Routes,
@@ -23,6 +25,10 @@ import AdminCourses from './pages/AdminCourses';
 import EditCourse from './pages/EditCourse';
 import AddModule from './pages/AddModule';
 import AddLesson from './pages/AddLesson';
+import AdminUsers from "./pages/AdminUsers";
+import AdminEnrollments from "./pages/AdminEnrollments";
+import PaymentHistory from './pages/PaymentHistory';
+import VerifyEmail from './pages/VerifyEmail';
 
 function App() {
 
@@ -38,6 +44,7 @@ function App() {
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/verify-email/:token" element={<VerifyEmail />} />
                     <Route path="/reset-password/:token" element={<ResetPassword />} />
 
                     {/* Protected Student Dashboard */}
@@ -46,6 +53,15 @@ function App() {
                         element={
                             <ProtectedRoute>
                                 <Dashboard />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/payments"
+                        element={
+                            <ProtectedRoute>
+                                <PaymentHistory />
                             </ProtectedRoute>
                         }
                     />
@@ -100,6 +116,24 @@ function App() {
                         element={
                             <ProtectedRoute>
                                 <AddLesson />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/admin/users"
+                        element={
+                            <ProtectedRoute>
+                                <AdminUsers />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/admin/enrollments"
+                        element={
+                            <ProtectedRoute>
+                                <AdminEnrollments />
                             </ProtectedRoute>
                         }
                     />

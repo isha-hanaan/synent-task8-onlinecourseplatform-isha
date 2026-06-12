@@ -1,3 +1,5 @@
+// frontend/src/pages/ForgotPassword.jsx
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import '../styles/AuthPages.css';

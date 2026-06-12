@@ -1,11 +1,13 @@
+/* server/utils/sendEmail.js */
+
 const nodemailer = require('nodemailer');
 
 const sendEmail = async (options) => {
     try {
         const transporter = nodemailer.createTransport({
             host: process.env.EMAIL_HOST,
-            port: parseInt(process.env.EMAIL_PORT, 10) || 587, // Ensured port parses cleanly into a number
-            secure: process.env.EMAIL_SECURE === 'true', // Supports true/false flags for SSL/TLS setups
+            port: parseInt(process.env.EMAIL_PORT, 10) || 587,
+            secure: process.env.EMAIL_SECURE === 'true',
             auth: {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASS,
@@ -17,16 +19,22 @@ const sendEmail = async (options) => {
             to: options.email,
             subject: options.subject,
             text: options.message,
-            html: options.html || undefined, // Added support for optional responsive HTML layouts
+            html: options.html || undefined,
         };
 
-        await transporter.sendMail(mailOptions);
-        return true; // Return true to let the calling controller know delivery succeeded
+        const info = await transporter.sendMail(mailOptions);
+
+        if (process.env.NODE_ENV === 'development') {
+        }
+
+        return info;
     } catch (error) {
-        // Log the structural error diagnostic metrics clearly for admins
         console.error('⚠️ Nodemailer Transport Layer Delivery Failure:', error.message);
 
-        return false; // Return false so controllers can gracefully inform users that delivery failed
+        // FIXED: Explicitly attach a status code and pass the error forward so the global error middleware catches it
+        error.statusCode = 503; // Service Unavailable
+        error.message = `Email notification delivery failed: ${error.message}`;
+        throw error;
     }
 };
 

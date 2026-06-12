@@ -1,9 +1,13 @@
+/* server/controllers/enrollmentController.js */
+
 const crypto = require('crypto');
 const Razorpay = require('razorpay');
 const Enrollment = require('../models/Enrollment');
 const Course = require('../models/Course');
+const Module = require('../models/Module');
 const Lesson = require('../models/Lesson');
-const Module = require('../models/Module'); // Fixed: Extracted from inline execution loop
+const User = require('../models/User');
+const sendEmail = require('../utils/sendEmail');
 
 // Initialize Razorpay Instance safely
 let razorpay;
@@ -121,7 +125,6 @@ const verifyPayment = async (req, res) => {
             });
         }
 
-        // Find enrollment handling fallbacks
         const enrollment = await Enrollment.findOne({
             razorpayOrderId: razorpay_order_id
         });
@@ -135,6 +138,17 @@ const verifyPayment = async (req, res) => {
         enrollment.status = "completed";
         enrollment.razorpayPaymentId = razorpay_payment_id || "mock_payment_" + crypto.randomBytes(4).toString('hex');
         await enrollment.save();
+
+        const user = await User.findById(enrollment.user);
+        const course = await Course.findById(enrollment.course);
+
+        if (user && course) {
+            await sendEmail({
+                email: user.email,
+                subject: "Course Enrollment Successful",
+                message: `Hello ${user.name},\n\nCongratulations! Your enrollment has been confirmed.\n\nCourse: ${course.title}\n\nYou can now access the course from your dashboard.\n\nHappy Learning!\nZenithAcad Team`
+            });
+        }
 
         return res.status(200).json({
             success: true,
@@ -154,39 +168,34 @@ const getUserEnrollments = async (req, res) => {
         const enrollments = await Enrollment.find({
             user: req.user.id,
             status: 'completed'
-        }).populate('course', 'title description instructor thumbnail price category level totalDuration');
+        }).populate('course');
 
-        const enrollmentData = await Promise.all(
-            enrollments.map(async (enrollment) => {
-                if (!enrollment.course) return null;
+        // FIXED: Calculated total lessons using standalone relational cross-references cleanly
+        const enrollmentData = await Promise.all(enrollments.map(async (enrollment) => {
+            if (!enrollment.course) return null;
 
-                // Find distinct module IDs tied directly to this course
-                const moduleIds = await Module.find({ course: enrollment.course._id }).distinct('_id');
+            // 1. Locate all standalone modules corresponding to this course
+            const modules = await Module.find({ course: enrollment.course._id }).select('_id');
+            const moduleIds = modules.map(m => m._id);
 
-                // Sum up total matching lessons inside those modules
-                const totalLessons = await Lesson.countDocuments({
-                    module: { $in: moduleIds }
-                });
+            // 2. Count all standalone lessons containing references inside those modules
+            const totalLessons = await Lesson.countDocuments({ module: { $in: moduleIds } });
 
-                const completedCount = enrollment.completedLessons?.length || 0;
-                const progressPercentage = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
+            const completedCount = enrollment.completedLessons?.length || 0;
+            const progressPercentage = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
 
-                return {
-                    ...enrollment.toObject(),
-                    totalLessons,
-                    completedCount,
-                    progressPercentage
-                };
-            })
-        );
-
-        // Filter out dangling elements if a course was deleted but an enrollment remained
-        const cleanedData = enrollmentData.filter(item => item !== null);
+            return {
+                ...enrollment.toObject(),
+                totalLessons,
+                completedCount,
+                progressPercentage
+            };
+        }));
 
         res.status(200).json({
             success: true,
-            count: cleanedData.length,
-            data: cleanedData
+            count: enrollmentData.filter(item => item !== null).length,
+            data: enrollmentData.filter(item => item !== null)
         });
 
     } catch (error) {
@@ -217,9 +226,32 @@ const markLessonComplete = async (req, res) => {
     }
 };
 
+// @desc Get All Enrollments (Admin)
+const getAllEnrollments = async (req, res) => {
+    try {
+        const enrollments = await Enrollment.find()
+            .populate('user', 'name email')
+            .populate('course', 'title price')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            count: enrollments.length,
+            enrollments
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
 module.exports = {
     createOrder,
     verifyPayment,
     getUserEnrollments,
-    markLessonComplete
+    markLessonComplete,
+    getAllEnrollments
 };

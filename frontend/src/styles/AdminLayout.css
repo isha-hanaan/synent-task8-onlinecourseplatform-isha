@@ -1,0 +1,19 @@
+/* frontend/src/styles/AdminLayout.css */
+
+.admin-layout {
+    display: flex;
+    min-height: 100vh;
+    background: #eef2f7;
+}
+
+.admin-main {
+    flex: 1;
+    padding: 40px;
+    overflow-y: auto;
+
+    background:
+        radial-gradient(circle at top right,
+            rgba(108,99,255,.10),
+            transparent 35%),
+        #eef2f7;
+}

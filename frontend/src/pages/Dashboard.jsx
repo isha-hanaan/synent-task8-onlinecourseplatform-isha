@@ -1,16 +1,18 @@
+// frontend/src/pages/Dashboard.jsx
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import '../styles/Dashboard.css';
 import Sidebar from '../components/Sidebar';
-import Header from '../components/Header';
 import WelcomeBanner from '../components/WelcomeBanner';
 import CourseCard from '../components/CourseCard';
+import DashboardStats from '../components/DashboardStats';
 
 const Dashboard = () => {
     const navigate = useNavigate();
-    const { user, token, logout } = useAuth(); // Destructured token alongside user context metrics
+    const { user, token } = useAuth(); 
     const [enrollments, setEnrollments] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -19,16 +21,12 @@ const Dashboard = () => {
             if (!token) return;
             try {
 
-                console.log("Current User:", user);
-                console.log("Token:", token);
 
                 const { data } = await api.get('/api/enrollments', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 
-                console.log("Enrollments Response:", data);
 
-                console.log(data.data);
 
                 setEnrollments(data.data || []);
             } catch (error) {
@@ -41,10 +39,6 @@ const Dashboard = () => {
         fetchPurchasedTracks();
     }, [token]);
 
-    const handleLogout = () => {
-        logout();
-        navigate('/login');
-    };
 
 
 
@@ -57,9 +51,9 @@ const Dashboard = () => {
 
             <div className="main-content">
 
-                <Header user={user} />
-
                 <WelcomeBanner user={user} />
+
+                <DashboardStats enrollments={enrollments} />
 
                 <div className="courses-section">
 
@@ -68,7 +62,22 @@ const Dashboard = () => {
                     {loading ? (
                         <p>Loading...</p>
                     ) : enrollments.length === 0 ? (
-                        <p>No enrolled courses</p>
+
+
+                        <div>
+
+                            <h3>
+                                You haven't enrolled in any courses yet.
+                            </h3>
+
+                            <button
+                                onClick={() => navigate('/courses')}
+                            >
+                                Browse Courses
+                            </button>
+
+                        </div>
+
                     ) : (
                         <div className="courses-grid">
                             {enrollments.map((item) => (

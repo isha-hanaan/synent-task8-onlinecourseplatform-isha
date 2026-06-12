@@ -1,33 +1,74 @@
-.sidebar{
-    width:260px;
-    background:#1d2030;
-    padding:40px 25px;
-    color:white;
+/* frontend/src/styles/Sidebar.css */
+
+.sidebar {
+    width: 260px;
+    background: #0f172a;
+    padding: 40px 25px;
+    color: white;
+    min-height: 100vh;
 }
 
-.logo{
-    margin-bottom:50px;
+.sidebar-menu {
+    list-style: none;
 }
 
-.sidebar-menu{
-    list-style:none;
+.sidebar-menu li {
+    margin-bottom: 10px;
 }
 
-.sidebar-menu li{
-    padding:18px;
-    border-radius:15px;
-    margin-bottom:10px;
-    cursor:pointer;
-    color:#9da5b4;
-    transition:.3s;
+.sidebar-menu a {
+    text-decoration: none;
+    display: block;
+    padding: 18px;
+    border-radius: 15px;
+    color: #9da5b4;
+    transition: all 0.3s ease;
 }
 
-.sidebar-menu li:hover{
-    background:#6c63ff;
-    color:white;
+.sidebar-menu a:hover {
+    background: #6c63ff;
+    color: white;
 }
 
-.active{
-    background:#6c63ff;
-    color:white !important;
+.sidebar-menu a.active {
+    background: #6c63ff;
+    color: white;
+}
+
+.sidebar-logout-btn {
+    width: 100%;
+    padding: 18px;
+    border: none;
+    border-radius: 15px;
+    background: transparent;
+    color: #9da5b4;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    font-family: inherit;
+    line-height: 1.2;
+}
+
+.sidebar-logout-btn:hover {
+    background: #ef4444;
+    color: white;
+}
+
+.logo {
+    margin-bottom: 50px;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.logo h2 {
+    color: white;
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.logo:hover h2 {
+    color: #6c63ff;
 }

@@ -1,0 +1,14 @@
+/* frontend/src/styles/ProtectedRoute.css */
+
+.auth-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    height: 100vh;
+
+    font-size: 18px;
+    font-weight: 500;
+
+    color: #334155;
+}

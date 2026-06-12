@@ -1,9 +1,16 @@
+/* server/middleware/errorMiddleware.js */
+
 const errorHandler = (err, req, res, next) => {
     console.error('🔴 Express Operational Intercept Error Stack:', err);
 
+    // FIXED: Guard against modifying response pipelines after headers have already streamed out
+    if (res.headersSent) {
+        return next(err);
+    }
+
     let errorResponse = {
         message: err.message || 'Something went wrong inside the server application layer',
-        statusCode: res.statusCode !== 200 ? res.statusCode : 500
+        statusCode: err.statusCode || (res.statusCode !== 200 ? res.statusCode : 500)
     };
 
     // Mongoose Bad ObjectId Format Validation Check (CastError)

@@ -1,12 +1,25 @@
+// frontend/src/components/WelcomeBanner.jsx
+
 import '../styles/WelcomeBanner.css';
 
 const WelcomeBanner = ({ user }) => {
+    const hour = new Date().getHours();
+
+    const greeting =
+        hour < 12
+            ? 'Good Morning'
+            : hour < 16
+                ? 'Good Afternoon'
+                : 'Good Evening';
+
     return (
         <div className="welcome-banner">
-            <h1>Welcome back, {user?.name} 👋</h1>
+            <h1>
+                {greeting}, {user?.name || 'Learner'} 👋
+            </h1>
 
             <p>
-                Keep learning and improve your progress!
+                Ready to continue learning today?
             </p>
         </div>
     );

@@ -1,3 +1,5 @@
+/* server/models/Lesson.js */
+
 const mongoose = require('mongoose');
 
 const LessonSchema = new mongoose.Schema({
@@ -26,5 +28,8 @@ const LessonSchema = new mongoose.Schema({
         default: 1
     }
 }, { timestamps: true });
+
+// FIXED: Compound index to optimize module lookups and sequential lesson ordering instantly
+LessonSchema.index({ module: 1, order: 1 });
 
 module.exports = mongoose.model('Lesson', LessonSchema);

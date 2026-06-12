@@ -1,3 +1,5 @@
+/* server/models/Course.js */
+
 const mongoose = require('mongoose');
 
 const CourseSchema = new mongoose.Schema({
@@ -53,13 +55,46 @@ const CourseSchema = new mongoose.Schema({
     },
     isAdminApproved: {
         type: Boolean,
-        default: false
+        default: false 
     },
     createdBy: {
-        type: mongoose.Schema.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     }
-}, { timestamps: true });
+}, { 
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
+
+// Advanced Feature: Virtual populate to fetch related modules effortlessly if needed
+CourseSchema.virtual('courseModules', {
+    ref: 'Module',
+    localField: '_id',
+    foreignField: 'course',
+    justOne: false
+});
+
+// FIXED: Cascade delete children modules and underlying lessons when a parent course is removed
+CourseSchema.pre('deleteOne', { document: true, query: false }, async function (next) {
+    try {
+        // 1. Locate all standalone modules pointing to this course ID
+        const relatedModules = await mongoose.model('Module').find({ course: this._id }).select('_id');
+        const moduleIds = relatedModules.map(mod => mod._id);
+
+        if (moduleIds.length > 0) {
+            // 2. Wipe away all underlying lessons belonging to those captured modules
+            await mongoose.model('Lesson').deleteMany({ module: { $in: moduleIds } });
+            
+            // 3. Clear out the parent modules themselves
+            await mongoose.model('Module').deleteMany({ course: this._id });
+            
+        }
+        next();
+    } catch (error) {
+        next(error);
+    }
+});
 
 module.exports = mongoose.model('Course', CourseSchema);

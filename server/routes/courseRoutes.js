@@ -1,3 +1,5 @@
+/* server/routes/courseRoutes.js */
+
 const express = require('express');
 const {
     getCourses,
@@ -11,7 +13,14 @@ const { protect, optionalProtect, authorize } = require('../middleware/authMiddl
 
 const router = express.Router();
 
-// Integrated optionalProtect to read session profiles on public listings safely
+// FIXED: Forward nested curriculum sub-resource endpoints cleanly down the tree
+// This intercepts requests to /api/courses/:courseId/modules and passes them straight to moduleRoutes
+const moduleRouter = require('./moduleRoutes');
+router.use('/:courseId/modules', moduleRouter);
+
+
+// --- CORE COURSE RESOURCE MAPPINGS ---
+
 router.route('/')
     .get(optionalProtect, getCourses)
     .post(protect, authorize('admin'), createCourse);

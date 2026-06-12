@@ -1,0 +1,88 @@
+/* frontend/src/styles/AdminSidebar.css */
+
+.admin-sidebar {
+    width: 260px;
+    min-height: 100vh;
+
+    background: #151822;
+
+    display: flex;
+    flex-direction: column;
+
+    padding: 30px 22px;
+
+    border-right: 1px solid #2a3145;
+}
+
+.admin-logo {
+    margin-bottom: 40px;
+}
+
+.admin-logo h2 {
+    color: white;
+    font-size: 1.8rem;
+    margin-bottom: 6px;
+}
+
+.admin-logo span {
+    color: #9da5b4;
+    font-size: .95rem;
+}
+
+.admin-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    flex: 1;
+}
+
+.admin-menu a {
+    text-decoration: none;
+
+    color: #c7d2fe;
+
+    padding: 14px 18px;
+
+    border-radius: 12px;
+
+    transition: .25s ease;
+
+    font-weight: 500;
+}
+
+.admin-menu a:hover {
+    background: #24293c;
+    color: white;
+}
+
+.admin-menu a.active {
+    background: #6c63ff;
+    color: white;
+}
+
+.admin-logout-btn {
+    margin-top: 30px;
+
+    width: 100%;
+
+    border: none;
+
+    border-radius: 12px;
+
+    padding: 14px;
+
+    background: #ef4444;
+
+    color: white;
+
+    cursor: pointer;
+
+    font-weight: 600;
+
+    transition: .25s ease;
+}
+
+.admin-logout-btn:hover {
+    background: #dc2626;
+}

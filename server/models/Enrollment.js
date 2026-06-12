@@ -1,13 +1,15 @@
+/* server/models/Enrollment.js */
+
 const mongoose = require('mongoose');
 
 const EnrollmentSchema = new mongoose.Schema({
     user: {
-        type: mongoose.Schema.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
     course: {
-        type: mongoose.Schema.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'Course',
         required: true
     },
@@ -23,8 +25,9 @@ const EnrollmentSchema = new mongoose.Schema({
         enum: ['pending', 'completed', 'failed'],
         default: 'pending'
     },
+    // FIXED: Formally map ObjectIds to the Lesson model so you can use .populate() directly in your dashboard analytics
     completedLessons: [{
-        type: mongoose.Schema.ObjectId, // Fixed: Cast to valid ObjectId references instead of mixed string types
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'Lesson'
     }]
 }, { timestamps: true });

@@ -1,9 +1,19 @@
+// frontend/src/components/CourseCard.jsx
+
 const CourseCard = ({ item, navigate }) => {
     return (
         <div className="course-card">
+
             <h3>{item.course?.title}</h3>
 
-            <p>Instructor: {item.course?.instructor}</p>
+            <p>
+                Instructor: {item.course?.instructor}
+            </p>
+
+            <p>
+                {item.course?.level} • {item.course?.totalDuration}
+            </p>
+
 
             <div className="progress-bar">
                 <div
@@ -14,13 +24,29 @@ const CourseCard = ({ item, navigate }) => {
                 />
             </div>
 
+
+
             <p>
-                {item.completedCount} / {item.totalLessons} lessons completed
+                {item.completedCount} / {item.totalLessons} lessons
             </p>
 
-            <p>{item.progressPercentage}% Complete</p>
+            {
+                item.progressPercentage === 100
+                    ? (
+                        <p style={{ color: '#28a745' }}>
+                            🎉 Course Completed
+                        </p>
+                    )
+                    : (
+                        <p>
+                            Progress: {item.progressPercentage}%
+                        </p>
+                    )
+            }
+
 
             <button
+                className="continue-btn"
                 onClick={() =>
                     navigate(`/learn/${item.course._id}`, {
                         state: {
@@ -29,8 +55,14 @@ const CourseCard = ({ item, navigate }) => {
                     })
                 }
             >
-                Continue Learning
+                {
+                    item.progressPercentage === 100
+                        ? 'Review Course'
+                        : 'Continue Learning →'
+                }
             </button>
+
+
         </div>
     );
 };

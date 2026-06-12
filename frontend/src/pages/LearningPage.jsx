@@ -1,12 +1,18 @@
+// frontend/src/pages/LearningPage.jsx
+
 import { useEffect, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import '../styles/LearningPage.css';
+import { useNavigate } from 'react-router-dom';
 
 const LearningPage = () => {
     const { courseId } = useParams();
     const location = useLocation();
     const { token } = useAuth();
+    const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     const [completedLessons, setCompletedLessons] = useState(
         location.state?.completedLessons || []
@@ -14,15 +20,18 @@ const LearningPage = () => {
     const [modules, setModules] = useState([]);
     const [selectedLesson, setSelectedLesson] = useState(null);
 
-    // 1. Move helper derivations up so handlers can safely reference them
     const allLessons = modules.flatMap(module => module.lessons || []);
     const currentIndex = allLessons.findIndex(
         lesson => lesson._id === selectedLesson?._id
     );
 
+    const isLessonCompleted =
+        completedLessons.includes(selectedLesson?._id);
+
     useEffect(() => {
+        if (!token) return;
         fetchModules();
-    }, []);
+    }, [token, courseId]);
 
     const fetchModules = async () => {
         try {
@@ -70,8 +79,6 @@ const LearningPage = () => {
             const currentEnrollment = enrollmentRes.data.data.find(
                 item => item.course._id === courseId
             );
-
-            console.log(currentEnrollment);
 
             if (currentEnrollment) {
                 setCompletedLessons(currentEnrollment.completedLessons || []);
@@ -121,7 +128,6 @@ const LearningPage = () => {
             setCompletedLessons(response.data.completedLessons);
             alert('Lesson marked complete!');
 
-            // 2. Now safely accesses top-level values without initialization errors
             if (currentIndex !== -1 && currentIndex < allLessons.length - 1) {
                 setSelectedLesson(allLessons[currentIndex + 1]);
             }
@@ -132,110 +138,132 @@ const LearningPage = () => {
     };
 
     return (
-        <div style={{ display: 'flex', gap: '30px', padding: '20px' }}>
-            {/* Sidebar */}
-            <div style={{ width: '300px' }}>
-                <h2>Course Content</h2>
-                {modules.map((module) => (
-                    <div key={module._id}>
-                        <h3>{module.title}</h3>
-                        {module.lessons?.map((lesson) => (
-                            <div
-                                key={lesson._id}
-                                style={{
-                                    cursor: 'pointer',
-                                    padding: '8px',
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    background: selectedLesson?._id === lesson._id ? '#dbeafe' : 'transparent',
-                                    border: selectedLesson?._id === lesson._id ? '1px solid #3b82f6' : '1px solid transparent',
-                                    borderRadius: '6px'
-                                }}
-                                onClick={() => setSelectedLesson(lesson)}
-                            >
-                                <span>{lesson.title}</span>
-                                {completedLessons.includes(lesson._id) && (
-                                    <span style={{ color: '#28a745', fontWeight: 'bold' }}>✓</span>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                ))}
+        <>
+            <div className="learning-header">
+
+                <button
+                    className="back-btn"
+                    onClick={() => navigate('/dashboard')}
+                >
+                    ← Back to Dashboard
+                </button>
+
+                <div className="learning-header-info">
+                    <h2>
+                        {selectedLesson?.title || 'Learning'}
+                    </h2>
+
+                    <p>
+                        Progress: {completedLessons.length} / {allLessons.length} lessons completed
+                    </p>
+                </div>
+
             </div>
 
-            {/* Video Section */}
-            <div style={{ flex: 1 }}>
-                {currentIndex === allLessons.length - 1 && completedLessons.includes(selectedLesson?._id) ? (
-                    <div style={{ textAlign: 'center', padding: '80px' }}>
-                        <h1>🎉 Course Completed!</h1>
-                        <h3>Congratulations on finishing this course.</h3>
-                        <button
-                            onClick={() => setSelectedLesson(allLessons[0])}
-                            style={{ marginTop: '20px', padding: '15px 25px' }}
+            <div className="learning-page">
+                {/* Sidebar */}
+                <div className="course-sidebar">
+                    <h2>Course Content</h2>
+                    {modules.map((module) => (
+
+                        <div
+                            key={module._id}
+                            className="module-card"
                         >
-                            Review Course
-                        </button>
-                    </div>
-                ) : (
-                    selectedLesson ? (
-                        <>
-                            <h2>{selectedLesson.title}</h2>
-                            <iframe
-                                width="100%"
-                                height="500"
-                                src={selectedLesson.videoUrl}
-                                title={selectedLesson.title}
-                                allowFullScreen
-                            />
+                            <div className="module-title">
+                                {module.title}
+                            </div>
+
+                            {module.lessons?.map((lesson) => (
+
+                                <div
+                                    key={lesson._id}
+                                    className={`lesson-item ${selectedLesson?._id === lesson._id
+                                        ? 'active'
+                                        : ''
+                                        }`}
+                                    onClick={() => setSelectedLesson(lesson)}
+                                >
+
+
+                                    <span>{lesson.title}</span>
+                                    {completedLessons.includes(lesson._id) && (
+
+                                        <span className="lesson-check">
+                                            ✓
+                                        </span>
+
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    ))}
+                </div>
+
+                {/* Video Section */}
+                <div className="video-section">
+                    {currentIndex === allLessons.length - 1 &&
+                        isLessonCompleted ? (
+                        <div className="course-complete">
+                            <h1>🎉 Course Completed!</h1>
+                            <h3>Congratulations on finishing this course.</h3>
 
                             <button
-                                onClick={handleCompleteLesson}
-                                disabled={completedLessons.includes(selectedLesson?._id)}
-                                style={{
-                                    marginTop: '20px',
-                                    padding: '12px 20px',
-                                    backgroundColor:
-                                        completedLessons.includes(selectedLesson?._id)
-                                            ? '#28a745'
-                                            : '#2563eb',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '6px',
-                                    cursor:
-                                        completedLessons.includes(selectedLesson?._id)
-                                            ? 'default'
-                                            : 'pointer'
-                                }}
+                                className="review-btn"
+                                onClick={() => setSelectedLesson(allLessons[0])}
                             >
-                                {
-                                    completedLessons.includes(selectedLesson?._id)
-                                        ? '✓ Completed'
-                                        : 'Mark Lesson Complete'
-                                }
-                            </button>
 
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
-                                <button
-                                    disabled={currentIndex <= 0}
-                                    onClick={() => setSelectedLesson(allLessons[currentIndex - 1])}
-                                >
-                                    ← Previous Lesson
-                                </button>
-                                <button
-                                    disabled={currentIndex === allLessons.length - 1}
-                                    onClick={() => setSelectedLesson(allLessons[currentIndex + 1])}
-                                >
-                                    Next Lesson →
-                                </button>
-                            </div>
-                        </>
+                                Review Course
+                            </button>
+                        </div>
                     ) : (
-                        <h2>Select a lesson</h2>
-                    )
-                )}
+                        selectedLesson ? (
+                            <>
+                                <h2>{selectedLesson.title}</h2>
+
+                                <iframe
+                                    className="lesson-video"
+                                    src={selectedLesson.videoUrl}
+                                    title={selectedLesson.title}
+                                    allowFullScreen
+                                />
+
+                                <button
+                                    className={`complete-btn ${isLessonCompleted ? 'completed' : ''}`}
+                                    onClick={handleCompleteLesson}
+                                    disabled={isLessonCompleted}
+                                >
+
+                                    {isLessonCompleted
+                                        ? '✓ Completed'
+                                        : 'Mark Lesson Complete'}
+                                </button>
+
+                                <div className="lesson-navigation">
+                                    <button
+                                        disabled={currentIndex <= 0}
+                                        onClick={() => setSelectedLesson(allLessons[currentIndex - 1])}
+                                    >
+                                        ← Previous Lesson
+                                    </button>
+                                    <button
+                                        disabled={currentIndex === allLessons.length - 1}
+                                        onClick={() => setSelectedLesson(allLessons[currentIndex + 1])}
+                                    >
+                                        Next Lesson →
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+
+                            <div className="loading-state">
+                                Loading course...
+                            </div>
+                        )
+                    )}
+                </div>
             </div>
-        </div>
+        </>
     );
 };
 

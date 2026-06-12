@@ -1,3 +1,5 @@
+/* server/controllers/moduleController.js */
+
 const Module = require('../models/Module');
 const Enrollment = require('../models/Enrollment');
 
@@ -8,8 +10,13 @@ const getModulesByCourse = async (req, res) => {
     try {
         const courseId = req.params.courseId;
 
+        // FIXED: Catch unauthenticated guest visitors immediately before evaluating properties on req.user
+        if (!req.user) {
+            return res.status(401).json({ message: 'Not authorized. Please log in.' });
+        }
+
         // Check Access: If the user is an admin, let them pass directly to manage modules
-        if (!req.user || req.user.role !== 'admin') {
+        if (req.user.role !== 'admin') {
             const enrollment = await Enrollment.findOne({
                 user: req.user.id,
                 course: courseId,
@@ -39,10 +46,8 @@ const getModulesByCourse = async (req, res) => {
 // @desc    Get all modules
 // @route   GET /api/modules
 // @access  Private/Admin
-
 const getAllModules = async (req, res) => {
     try {
-
         const modules = await Module.find()
             .populate('course', 'title')
             .sort('createdAt');
@@ -60,13 +65,21 @@ const getAllModules = async (req, res) => {
     }
 };
 
-
-
 // @desc    Create module
-// @route   POST /api/modules
+// @route   POST /api/modules OR POST /api/courses/:courseId/modules
 // @access  Private/Admin
 const createModule = async (req, res) => {
     try {
+        // FIXED: Automatically extract parent course ID from URL parameters if available
+        if (req.params.courseId) {
+            req.body.course = req.params.courseId;
+        }
+
+        // Guard against saving a module without any parent course mapped
+        if (!req.body.course) {
+            return res.status(400).json({ message: 'A parent course ID is required to create a module.' });
+        }
+
         const moduleItem = await Module.create(req.body);
         res.status(201).json({ success: true, data: moduleItem });
     } catch (error) {
@@ -106,13 +119,11 @@ const updateModule = async (req, res) => {
     }
 };
 
-
 // @desc    Delete module
 // @route   DELETE /api/modules/:id
 // @access  Private/Admin
 const deleteModule = async (req, res) => {
     try {
-
         const moduleItem = await Module.findById(req.params.id);
 
         if (!moduleItem) {

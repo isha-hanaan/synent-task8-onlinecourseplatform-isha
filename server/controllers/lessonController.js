@@ -1,3 +1,5 @@
+/* server/controllers/lessonController.js */
+
 const Lesson = require('../models/Lesson');
 const Enrollment = require('../models/Enrollment');
 const Module = require('../models/Module');
@@ -12,8 +14,13 @@ const getLessonsByModule = async (req, res) => {
             return res.status(404).json({ message: 'Module reference not found' });
         }
 
+        // CRASH FIX: Ensure req.user exists before attempting to look up enrollments
+        if (!req.user) {
+            return res.status(401).json({ message: 'Not authorized. Please log in.' });
+        }
+
         // Access enforcement layer: Admins bypass, standard users checked against course enrollments
-        if (!req.user || req.user.role !== 'admin') {
+        if (req.user.role !== 'admin') {
             const enrollment = await Enrollment.findOne({
                 user: req.user.id,
                 course: moduleItem.course,
@@ -38,10 +45,20 @@ const getLessonsByModule = async (req, res) => {
 };
 
 // @desc    Create lesson
-// @route   POST /api/lessons
+// @route   POST /api/lessons OR POST /api/modules/:moduleId/lessons
 // @access  Private/Admin
 const createLesson = async (req, res) => {
     try {
+        // FLEXIBILITY FIX: Automatically capture the module ID from URL params if present, or fall back to req.body
+        if (req.params.moduleId) {
+            req.body.module = req.params.moduleId;
+        }
+
+        // Double check that we actually have a module ID bound before passing to Mongoose validation
+        if (!req.body.module) {
+            return res.status(400).json({ message: 'A parent module ID is required to create a lesson.' });
+        }
+
         const lesson = await Lesson.create(req.body);
         res.status(201).json({ success: true, data: lesson });
     } catch (error) {

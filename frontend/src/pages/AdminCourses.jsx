@@ -1,7 +1,11 @@
+// frontend/src/pages/AdminCourses.jsx
+
 import { useEffect, useState } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import AdminLayout from '../components/AdminLayout';
+import '../styles/AdminDashboard.css';
 
 const AdminCourses = () => {
 
@@ -60,56 +64,81 @@ const AdminCourses = () => {
     };
 
     return (
-        <div style={{ padding: '2rem' }}>
+        <AdminLayout>
 
-            <h1>Manage Courses</h1>
+            <div className="admin-page">
 
-            <table border="1" cellPadding="10">
+                <div className="admin-page-header">
 
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Instructor</th>
-                        <th>Category</th>
-                        <th>Price</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
+                    <div>
+                        <h1>Manage Courses</h1>
+                        <p>Create, edit and remove courses.</p>
+                    </div>
 
-                <tbody>
+                    <button
+                        className="primary-btn"
+                        onClick={() => navigate('/admin/add-course')}
+                    >
+                        + Add Course
+                    </button>
 
-                    {courses.map(course => (
+                </div>
+                <div className="admin-table-wrapper">
 
-                        <tr key={course._id}>
-                            <td>{course.title}</td>
-                            <td>{course.instructor}</td>
-                            <td>{course.category}</td>
-                            <td>₹{course.price}</td>
+                    <table className="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Instructor</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
 
-                            <td>
+                        <tbody>
 
-                                <button
-                                    onClick={() => navigate(`/admin/edit-course/${course._id}`)}
-                                >
-                                    Edit
-                                </button>
+                            {courses.map(course => (
 
-                                <button
-                                    onClick={() => deleteCourse(course._id)}
-                                >
-                                    Delete
-                                </button>
+                                <tr key={course._id}>
+                                    <td>{course.title}</td>
+                                    <td>{course.instructor}</td>
+                                    <td>{course.category}</td>
+                                    <td>₹{course.price}</td>
 
-                            </td>
-                        </tr>
+                                    <td>
 
-                    ))}
+                                        <div className="table-actions">
 
-                </tbody>
+                                            <button
+                                                className="edit-btn"
+                                                onClick={() => navigate(`/admin/edit-course/${course._id}`)}
+                                            >
+                                                Edit
+                                            </button>
 
-            </table>
+                                            <button
+                                                className="delete-btn"
+                                                onClick={() => deleteCourse(course._id)}
+                                            >
+                                                Delete
+                                            </button>
 
-        </div>
+                                        </div>
+
+                                    </td>
+                                </tr>
+
+                            ))}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            </div>
+
+        </AdminLayout>
     );
 };
 

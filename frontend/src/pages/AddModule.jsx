@@ -1,6 +1,10 @@
+// frontend/src/pages/AddModule.jsx
+
 import { useEffect, useState } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import AdminLayout from '../components/AdminLayout';
+import '../styles/AdminForms.css';
 
 const AddModule = () => {
 
@@ -71,63 +75,68 @@ const AddModule = () => {
     };
 
     return (
-        <div style={{ padding: '2rem' }}>
+        <AdminLayout>
 
-            <h1>Add Module</h1>
+            <div className="admin-form-page">
 
-            <form onSubmit={handleSubmit}>
+                <h1>Add Module</h1>
 
-                <input
-                    name="title"
-                    placeholder="Module title"
-                    value={formData.title}
-                    onChange={handleChange}
-                />
-
-                <br /><br />
-
-                <select
-                    name="course"
-                    value={formData.course}
-                    onChange={handleChange}
+                <form
+                    className="admin-form"
+                    onSubmit={handleSubmit}
                 >
+                    <input
+                        name="title"
+                        placeholder="Module title"
+                        value={formData.title}
+                        onChange={handleChange}
+                    />
 
-                    <option value="">
-                        Select Course
-                    </option>
 
-                    {courses.map(course => (
+                    <select
+                        name="course"
+                        value={formData.course}
+                        onChange={handleChange}
+                    >
 
-                        <option
-                            key={course._id}
-                            value={course._id}
-                        >
-                            {course.title}
+                        <option value="">
+                            Select Course
                         </option>
 
-                    ))}
+                        {courses.map(course => (
 
-                </select>
+                            <option
+                                key={course._id}
+                                value={course._id}
+                            >
+                                {course.title}
+                            </option>
 
-                <br /><br />
+                        ))}
 
-                <input
-                    type="number"
-                    name="order"
-                    value={formData.order}
-                    onChange={handleChange}
-                />
+                    </select>
 
-                <br /><br />
 
-                <button>
-                    Create Module
-                </button>
+                    <input
+                        type="number"
+                        name="order"
+                        value={formData.order}
+                        onChange={handleChange}
+                    />
 
-            </form>
 
-        </div>
+                    <button type="submit">
+                        Create Module
+                    </button>
+
+                </form>
+
+            </div>
+
+        </AdminLayout>
     );
+
 };
+
 
 export default AddModule;

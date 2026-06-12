@@ -1,3 +1,5 @@
+/* server/routes/lessonRoutes.js */
+
 const express = require('express');
 const {
     getLessonsByModule,
@@ -8,15 +10,24 @@ const {
 
 const { protect, authorize } = require('../middleware/authMiddleware');
 
-const router = express.Router();
+// FIXED: Enable mergeParams to inherit the parent :moduleId variable if routed from moduleRoutes
+const router = express.Router({ mergeParams: true });
 
-// Protected route (access controlled inside controller based on student enrollment status)
-router.get('/:moduleId', protect, getLessonsByModule);
 
-// Admin-only write operations
-router.post('/', protect, authorize('admin'), createLesson);
-router.put('/:id', protect, authorize('admin'), updateLesson);
-router.delete('/:id', protect, authorize('admin'), deleteLesson);
+// --- CLIENT READ HOOKS ---
+
+// Handles both: /api/lessons/:moduleId AND nested /api/modules/:moduleId/lessons
+router.route('/:moduleId')
+    .get(protect, getLessonsByModule);
+
+
+// --- ADMINISTRATIVE CONTENT MUTATIONS ---
+
+router.route('/')
+    .post(protect, authorize('admin'), createLesson);
+
+router.route('/:id')
+    .put(protect, authorize('admin'), updateLesson)
+    .delete(protect, authorize('admin'), deleteLesson);
 
 module.exports = router;
-

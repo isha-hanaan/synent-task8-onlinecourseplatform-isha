@@ -1,3 +1,5 @@
+/* server/middleware/authMiddleware.js */
+
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
@@ -31,7 +33,7 @@ const protect = async (req, res, next) => {
     }
 };
 
-// Optional authorization interceptor: extracts profile data if token is provided, otherwise skips without failing
+// Optional authorization interceptor: extracts profile data if token is provided, otherwise skips safely
 const optionalProtect = async (req, res, next) => {
     try {
         let token;
@@ -39,16 +41,22 @@ const optionalProtect = async (req, res, next) => {
             token = req.headers.authorization.split(' ')[1];
         }
 
-        if (token) {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            const userObj = await User.findById(decoded.id).select('-password');
-            if (userObj && userObj.isVerified) {
-                req.user = userObj; // Bind data profile if validated successfully
-            }
+        // If no token exists, they are a guest. Advance cleanly without applying req.user context.
+        if (!token) {
+            return next();
         }
+
+        // FIXED: If a token exists, explicitly enforce valid signing states rather than swallowing verification errors
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userObj = await User.findById(decoded.id).select('-password');
+
+        if (userObj && userObj.isVerified) {
+            req.user = userObj; // Bind data profile if validated successfully
+        }
+
         next();
     } catch (error) {
-        // Fall through gracefully without assigning req.user profile context tracking state
+        req.user = null;
         next();
     }
 };
@@ -74,6 +82,6 @@ const authorize = (...roles) => {
 
 module.exports = {
     protect,
-    optionalProtect, // Exported to support flexible public search parameters logic
+    optionalProtect,
     authorize
 };

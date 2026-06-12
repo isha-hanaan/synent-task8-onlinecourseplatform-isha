@@ -1,6 +1,9 @@
-const Course = require('../models/Course');
+/* server/controllers/courseController.js */
 
-// @desc    Get all courses (with Search, Category Filter, Pagination, Admin approval management)
+const Course = require('../models/Course');
+const Module = require('../models/Module'); // Required to ensure the model compiles for populates
+
+// @desc    Get all courses (with Search, Category Filter, Pagination, Admin approval enforcement)
 // @route   GET /api/courses
 // @access  Public (Filtered) / Private Admin (Unfiltered)
 const getCourses = async (req, res) => {
@@ -19,8 +22,7 @@ const getCourses = async (req, res) => {
             ];
         }
 
-        // 2. Admin Oversight Filtering: If user is not an Admin, show ONLY approved courses.
-        // Assumes your validation auth middleware attaches req.user
+        // 2. SECURITY FIX: Enforce Admin Approval filter for regular users/guests
         if (!req.user || req.user.role !== 'admin') {
             queryObj.isAdminApproved = true;
         }
@@ -41,9 +43,7 @@ const getCourses = async (req, res) => {
         const limit = parseInt(req.query.limit, 10) || 10;
         const startIndex = (page - 1) * limit;
 
-        // Execute dynamic document counts based on operational object conditions
         const total = await Course.countDocuments(queryObj);
-
         query = query.skip(startIndex).limit(limit);
 
         // Execute query execution
@@ -65,18 +65,28 @@ const getCourses = async (req, res) => {
     }
 };
 
-// @desc    Get single course by ID
+// @desc    Get single course by ID with complete syllabus structure
 // @route   GET /api/courses/:id
 // @access  Public
 const getCourse = async (req, res) => {
     try {
-        const course = await Course.findById(req.params.id);
+        // FIXED: Deeply populate modules and their respective lessons across our standalone collections
+        const course = await Course.findById(req.params.id).populate({
+            path: 'courseModules',
+            options: { sort: { order: 1 } },
+            populate: {
+                path: 'lessons',
+                model: 'Lesson',
+                options: { sort: { order: 1 } }
+            }
+        });
+
         if (!course) {
             return res.status(404).json({ message: 'Course not found' });
         }
 
-        // Prevent standard users from accessing unapproved courses directly via ID manipulation
-        if (!course.isAdminApproved && (!req.user || req.user.role !== 'admin')) {
+        // CRASH & SECURITY FIX: Prevent standard users/guests from accessing unapproved courses using optional chaining
+        if (!course.isAdminApproved && (!req.user || req.user?.role !== 'admin')) {
             return res.status(403).json({ message: 'This course is awaiting administrator approval.' });
         }
 
@@ -94,7 +104,7 @@ const createCourse = async (req, res) => {
         req.body.createdBy = req.user.id;
 
         // If an admin creates a course, auto-approve it; otherwise leave default (false)
-        if (req.user.role === 'admin') {
+        if (req.user?.role === 'admin') {
             req.body.isAdminApproved = true;
         }
 
@@ -105,7 +115,7 @@ const createCourse = async (req, res) => {
     }
 };
 
-// @desc    Update course (Enables Admin Approval Toggle)
+// @desc    Update course (Enables Admin Approval Toggle / Content updates)
 // @route   PUT /api/courses/:id
 // @access  Private/Admin
 const updateCourse = async (req, res) => {

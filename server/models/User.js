@@ -1,3 +1,5 @@
+/* server/models/User.js */
+
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
@@ -18,7 +20,7 @@ const UserSchema = new mongoose.Schema({
     password: {
         type: String,
         required: [true, 'Please add a password'],
-        select: false // Excludes password field from query fetches automatically for security
+        select: false
     },
     role: {
         type: String,
@@ -30,7 +32,7 @@ const UserSchema = new mongoose.Schema({
         default: false
     },
     wishlist: [{
-        type: mongoose.Schema.ObjectId, // Added: Necessary state storage array tracking user wishlists
+        type: mongoose.Schema.ObjectId,
         ref: 'Course'
     }],
     verificationToken: String,
@@ -40,20 +42,19 @@ const UserSchema = new mongoose.Schema({
 
 // Encrypt password before saving
 UserSchema.pre('save', async function () {
+    // Explicitly use standard function definition to correctly bind 'this' contextual document scope
     if (!this.isModified('password')) {
         return;
     }
 
-    try {
-        const salt = await bcrypt.genSalt(10);
-        this.password = await bcrypt.hash(this.password, salt);
-    } catch (error) {
-        throw error;
-    }
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+
 });
 
 // Helper method to compare passwords
 UserSchema.methods.matchPassword = async function (enteredPassword) {
+    // Because password has select: false, ensure this is only called when password is explicitly selected/populated
     return await bcrypt.compare(enteredPassword, this.password);
 };
 

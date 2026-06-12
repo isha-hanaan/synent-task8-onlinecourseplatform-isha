@@ -1,6 +1,10 @@
+// frontend/src/pages/AddLesson.jsx
+
 import { useEffect, useState } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import AdminLayout from '../components/AdminLayout';
+import '../styles/AdminForms.css';
 
 const AddLesson = () => {
 
@@ -74,86 +78,85 @@ const AddLesson = () => {
     };
 
     return (
-        <div style={{ padding: '2rem' }}>
+        <AdminLayout>
 
-            <h1>Add Lesson</h1>
+            <div className="admin-form-page">
 
-            <form onSubmit={handleSubmit}>
+                <h1>Add Lesson</h1>
 
-                <input
-                    name="title"
-                    placeholder="Lesson title"
-                    value={formData.title}
-                    onChange={handleChange}
-                />
-
-                <br /><br />
-
-                <textarea
-                    name="description"
-                    placeholder="Description"
-                    value={formData.description}
-                    onChange={handleChange}
-                />
-
-                <br /><br />
-
-                <input
-                    name="videoUrl"
-                    placeholder="Youtube Embed URL"
-                    value={formData.videoUrl}
-                    onChange={handleChange}
-                />
-
-                <br /><br />
-
-                <select
-                    name="module"
-                    value={formData.module}
-                    onChange={handleChange}
+                <form
+                    className="admin-form"
+                    onSubmit={handleSubmit}
                 >
-                    <option value="">Select Module</option>
+                    <input
+                        name="title"
+                        placeholder="Lesson title"
+                        value={formData.title}
+                        onChange={handleChange}
+                    />
 
-                    {modules.map(module => (
 
-                        <option
-                            key={module._id}
-                            value={module._id}
-                        >
-                            {module.title}
-                        </option>
+                    <textarea
+                        name="description"
+                        placeholder="Description"
+                        value={formData.description}
+                        onChange={handleChange}
+                    />
 
-                    ))}
 
-                </select>
+                    <input
+                        name="videoUrl"
+                        placeholder="Youtube Embed URL"
+                        value={formData.videoUrl}
+                        onChange={handleChange}
+                    />
 
-                <br /><br />
 
-                <input
-                    name="duration"
-                    placeholder="10:00"
-                    value={formData.duration}
-                    onChange={handleChange}
-                />
+                    <select
+                        name="module"
+                        value={formData.module}
+                        onChange={handleChange}
+                    >
+                        <option value="">Select Module</option>
 
-                <br /><br />
+                        {modules.map(module => (
 
-                <input
-                    type="number"
-                    name="order"
-                    value={formData.order}
-                    onChange={handleChange}
-                />
+                            <option
+                                key={module._id}
+                                value={module._id}
+                            >
+                                {module.title}
+                            </option>
 
-                <br /><br />
+                        ))}
 
-                <button>
-                    Create Lesson
-                </button>
+                    </select>
 
-            </form>
 
-        </div>
+                    <input
+                        name="duration"
+                        placeholder="10:00"
+                        value={formData.duration}
+                        onChange={handleChange}
+                    />
+
+
+                    <input
+                        type="number"
+                        name="order"
+                        value={formData.order}
+                        onChange={handleChange}
+                    />
+
+
+                    <button type="submit">
+                        Create Lesson
+                    </button>
+                </form>
+
+            </div>
+
+        </AdminLayout>
     );
 };
 
