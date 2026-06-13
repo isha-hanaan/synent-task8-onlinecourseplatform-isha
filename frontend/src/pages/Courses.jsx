@@ -19,7 +19,6 @@ const Courses = () => {
             try {
                 setLoading(true);
 
-                // Let the api service structure hook your env VITE_API_URL variables natively.
                 let url = `/api/courses?search=${encodeURIComponent(search)}`;
                 if (category) url += `&category=${encodeURIComponent(category)}`;
 

@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import AdminLayout from '../components/AdminLayout';
+import '../styles/AdminForms.css';
 
 const EditCourse = () => {
 
@@ -59,9 +61,14 @@ const EditCourse = () => {
 
         try {
 
+            const payload = {
+                ...formData,
+                price: Number(formData.price)
+            };
+
             await api.put(
                 `/api/courses/${id}`,
-                formData,
+                payload,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`
@@ -83,68 +90,93 @@ const EditCourse = () => {
     };
 
     return (
-        <div style={{ padding: '2rem' }}>
+        <AdminLayout>
+            <div className="admin-form-page">
 
-            <h1>Edit Course</h1>
+                <h1>Edit Course</h1>
 
-            <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit}>
 
-                <input
-                    name="title"
-                    value={formData.title}
-                    onChange={handleChange}
-                />
+                    <input
+                        name="title"
+                        value={formData.title}
+                        onChange={handleChange}
+                    />
 
-                <br /><br />
+                    <br /><br />
 
-                <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                />
+                    <textarea
+                        name="description"
+                        value={formData.description}
+                        onChange={handleChange}
+                    />
 
-                <br /><br />
+                    <br /><br />
 
-                <input
-                    name="instructor"
-                    value={formData.instructor}
-                    onChange={handleChange}
-                />
+                    <input
+                        name="instructor"
+                        value={formData.instructor}
+                        onChange={handleChange}
+                    />
 
-                <br /><br />
+                    <br /><br />
 
-                <input
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                />
+                    <select
+                        name="category"
+                        value={formData.category}
+                        onChange={handleChange}
+                    >
+                        <option value="">Select Category</option>
 
-                <br /><br />
+                        <option value="Web Development">Web Development</option>
+                        <option value="Backend Development">Backend Development</option>
+                        <option value="Data Science">Data Science</option>
+                        <option value="UI/UX Design">UI/UX Design</option>
+                        <option value="Design">Design</option>
+                        <option value="Mobile Development">Mobile Development</option>
+                        <option value="Cybersecurity">Cybersecurity</option>
+                        <option value="Other">Other</option>
+                    </select>
 
-                <input
-                    name="level"
-                    value={formData.level}
-                    onChange={handleChange}
-                />
+                    <br /><br />
 
-                <br /><br />
+                    <select
+                        name="level"
+                        value={formData.level}
+                        onChange={handleChange}
+                    >
+                        <option value="Beginner">
+                            Beginner
+                        </option>
 
-                <input
-                    type="number"
-                    name="price"
-                    value={formData.price}
-                    onChange={handleChange}
-                />
+                        <option value="Intermediate">
+                            Intermediate
+                        </option>
 
-                <br /><br />
+                        <option value="Advanced">
+                            Advanced
+                        </option>
+                    </select>
 
-                <button type="submit">
-                    Update Course
-                </button>
+                    <br /><br />
 
-            </form>
+                    <input
+                        type="number"
+                        name="price"
+                        value={formData.price}
+                        onChange={handleChange}
+                    />
 
-        </div>
+                    <br /><br />
+
+                    <button type="submit">
+                        Update Course
+                    </button>
+
+                </form>
+
+            </div>
+        </AdminLayout>
     );
 };
 

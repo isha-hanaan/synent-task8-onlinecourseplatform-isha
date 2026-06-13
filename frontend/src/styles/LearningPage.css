@@ -1,9 +1,5 @@
 /* frontend/src/styles/LearningPage.css */
 
-/* =========================
-   LEARNING PAGE LAYOUT
-========================= */
-
 .learning-page {
     display: flex;
     gap: 30px;
@@ -18,10 +14,6 @@
     flex: 1;
 }
 
-/* =========================
-   MODULES
-========================= */
-
 .module-card {
     margin-bottom: 25px;
 }
@@ -33,10 +25,6 @@
     color: #475569;
     margin-bottom: 12px;
 }
-
-/* =========================
-   LESSONS
-========================= */
 
 .lesson-item {
     padding: 12px 14px;
@@ -55,18 +43,11 @@
     color: white;
 }
 
-/* =========================
-   VIDEO AREA
-========================= */
-
 .video-card {
     background: rgba(255, 255, 255, 0.75);
     backdrop-filter: blur(14px);
-
     border-radius: 24px;
-
     padding: 24px;
-
     border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
@@ -91,15 +72,10 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-
     padding: 12px 14px;
-
     border-radius: 12px;
-
     cursor: pointer;
-
     transition: .25s ease;
-
     margin-bottom: 8px;
 }
 
@@ -166,13 +142,9 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-
     padding: 18px 30px;
-
     background: #ffffff;
-
     border-bottom: 1px solid #e5e7eb;
-
     position: sticky;
     top: 0;
     z-index: 100;
@@ -198,7 +170,6 @@
     font-weight: 600;
 
     color: #2563eb;
-
     cursor: pointer;
 }
 

@@ -16,7 +16,6 @@
     backdrop-filter: blur(10px);
 
     border-radius: 20px;
-
     padding: 20px;
 
     box-shadow:
@@ -33,19 +32,14 @@
 .payment-table th {
     text-align: left;
     padding: 16px;
-
     color: #475569;
-
     font-size: 0.9rem;
-
     border-bottom: 2px solid #e2e8f0;
 }
 
 .payment-table td {
     padding: 18px 16px;
-
     color: #0f172a;
-
     border-bottom: 1px solid #e2e8f0;
 }
 
@@ -56,11 +50,8 @@
 .status-badge {
     background: #dcfce7;
     color: #166534;
-
     padding: 6px 12px;
-
     border-radius: 999px;
-
     font-size: 0.85rem;
     font-weight: 600;
 }

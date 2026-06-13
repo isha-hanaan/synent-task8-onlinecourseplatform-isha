@@ -42,11 +42,8 @@ const PaymentHistory = () => {
 
     return (
         <div className="dashboard-layout">
-
             <Sidebar />
-
             <div className="main-content">
-
                 <div className="page-header">
                     <h1>Payment History</h1>
                     <p>View all your course purchases and transactions.</p>
@@ -84,21 +81,15 @@ const PaymentHistory = () => {
                             </thead>
 
                             <tbody>
-
                                 {payments.map(payment => (
-
                                     <tr key={payment._id}>
-
                                         <td>{payment.course?.title || 'Course unavailable'}</td>
-
                                         <td>₹{payment.course?.price || 0}</td>
-
                                         <td>
                                             <span className="status-badge">
                                                 {payment.status}
                                             </span>
                                         </td>
-
                                         <td>
                                             {new Date(payment.createdAt).toLocaleDateString('en-IN', {
                                                 day: 'numeric',
@@ -110,12 +101,9 @@ const PaymentHistory = () => {
                                 ))}
                             </tbody>
                         </table>
-
                     </div>
                 )}
-
             </div>
-
         </div>
     );
 };

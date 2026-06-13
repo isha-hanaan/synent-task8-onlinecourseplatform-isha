@@ -4,18 +4,29 @@ import { useEffect, useState } from 'react';
 import api from '../services/api';
 import AdminLayout from '../components/AdminLayout';
 import '../styles/AdminTables.css';
+import { useAuth } from '../context/AuthContext';
 
 function AdminEnrollments() {
     const [enrollments, setEnrollments] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { token } = useAuth();
 
     useEffect(() => {
         fetchEnrollments();
-    }, []);
+    }, [token]);
 
     const fetchEnrollments = async () => {
         try {
-            const { data } = await api.get("/api/enrollments/admin");
+
+            const { data } = await api.get(
+                "/api/enrollments/admin",
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+
             setEnrollments(data.enrollments);
         } catch (error) {
             console.error(error);
@@ -61,7 +72,8 @@ function AdminEnrollments() {
                                     <span className={`status ${enrollment.status.toLowerCase()}`}>
                                         {enrollment.status}
                                     </span>
-                                </td>                                <td>
+                                </td>
+                                <td>
                                     {new Date(
                                         enrollment.createdAt
                                     ).toLocaleDateString()}
@@ -71,7 +83,6 @@ function AdminEnrollments() {
                     </tbody>
                 </table>
             </div>
-
         </AdminLayout>
     );
 }

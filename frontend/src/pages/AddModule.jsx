@@ -9,7 +9,6 @@ import '../styles/AdminForms.css';
 const AddModule = () => {
 
     const { token } = useAuth();
-
     const [courses, setCourses] = useState([]);
 
     const [formData, setFormData] = useState({
@@ -26,7 +25,14 @@ const AddModule = () => {
 
         try {
 
-            const { data } = await api.get('/api/courses');
+            const { data } = await api.get(
+                '/api/courses',
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
 
             setCourses(data.data || []);
 
@@ -51,9 +57,14 @@ const AddModule = () => {
 
         try {
 
+            const payload = {
+                ...formData,
+                order: Number(formData.order)
+            };
+
             await api.post(
                 '/api/modules',
-                formData,
+                payload,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`
@@ -62,6 +73,12 @@ const AddModule = () => {
             );
 
             alert('Module created');
+
+            setFormData({
+                title: '',
+                course: '',
+                order: 1
+            });
 
         } catch (error) {
 
@@ -92,7 +109,6 @@ const AddModule = () => {
                         onChange={handleChange}
                     />
 
-
                     <select
                         name="course"
                         value={formData.course}
@@ -116,7 +132,6 @@ const AddModule = () => {
 
                     </select>
 
-
                     <input
                         type="number"
                         name="order"
@@ -124,19 +139,14 @@ const AddModule = () => {
                         onChange={handleChange}
                     />
 
-
                     <button type="submit">
                         Create Module
                     </button>
 
                 </form>
-
             </div>
-
         </AdminLayout>
     );
-
 };
-
 
 export default AddModule;

@@ -3,7 +3,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// Enforce strictly protected route operations (Verify Token Required)
 const protect = async (req, res, next) => {
     try {
         let token;
@@ -33,7 +32,6 @@ const protect = async (req, res, next) => {
     }
 };
 
-// Optional authorization interceptor: extracts profile data if token is provided, otherwise skips safely
 const optionalProtect = async (req, res, next) => {
     try {
         let token;
@@ -41,17 +39,15 @@ const optionalProtect = async (req, res, next) => {
             token = req.headers.authorization.split(' ')[1];
         }
 
-        // If no token exists, they are a guest. Advance cleanly without applying req.user context.
         if (!token) {
             return next();
         }
 
-        // FIXED: If a token exists, explicitly enforce valid signing states rather than swallowing verification errors
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const userObj = await User.findById(decoded.id).select('-password');
 
         if (userObj && userObj.isVerified) {
-            req.user = userObj; // Bind data profile if validated successfully
+            req.user = userObj; 
         }
 
         next();
@@ -61,7 +57,6 @@ const optionalProtect = async (req, res, next) => {
     }
 };
 
-// Authorize contextual role validations
 const authorize = (...roles) => {
     return (req, res, next) => {
         try {

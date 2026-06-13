@@ -41,11 +41,6 @@ const AdminDashboard = () => {
     </div>
 
 </div>
-
-
-
-
-
             <div className="admin-grid">
 
                 <div className="admin-card">
@@ -92,9 +87,7 @@ const AdminDashboard = () => {
                         </button>
                     </div>
                 </div>
-
             </div>
-
         </AdminLayout>
     );
 };

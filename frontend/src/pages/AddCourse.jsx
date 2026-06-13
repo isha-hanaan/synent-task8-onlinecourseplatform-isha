@@ -90,13 +90,47 @@ const AddCourse = () => {
                         onChange={handleChange}
                     />
 
-                    <input
-                        type="text"
+                    <select
                         name="category"
-                        placeholder="Category"
                         value={formData.category}
                         onChange={handleChange}
-                    />
+                    >
+                        <option value="">
+                            Select Category
+                        </option>
+
+                        <option value="Web Development">
+                            Web Development
+                        </option>
+
+                        <option value="Backend Development">
+                            Backend Development
+                        </option>
+
+                        <option value="Data Science">
+                            Data Science
+                        </option>
+
+                        <option value="UI/UX Design">
+                            UI/UX Design
+                        </option>
+
+                        <option value="Design">
+                            Design
+                        </option>
+
+                        <option value="Mobile Development">
+                            Mobile Development
+                        </option>
+
+                        <option value="Cybersecurity">
+                            Cybersecurity
+                        </option>
+
+                        <option value="Other">
+                            Other
+                        </option>
+                    </select>
 
                     <select
                         name="level"

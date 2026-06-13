@@ -10,14 +10,13 @@ import {
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
-// Pages
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
-import Courses from './pages/Courses';       // Added Phase 5
-import CourseDetail from './pages/CourseDetail'; // Added Phase 5
+import Courses from './pages/Courses';
+import CourseDetail from './pages/CourseDetail';
 import LearningPage from './pages/LearningPage';
 import AdminDashboard from './pages/AdminDashboard';
 import AddCourse from './pages/AddCourse';
@@ -69,7 +68,7 @@ function App() {
                     <Route
                         path="/admin"
                         element={
-                            <ProtectedRoute>
+                            <ProtectedRoute adminOnly>
                                 <AdminDashboard />
                             </ProtectedRoute>
                         }
@@ -78,7 +77,7 @@ function App() {
                     <Route
                         path="/admin/add-course"
                         element={
-                            <ProtectedRoute>
+                            <ProtectedRoute adminOnly>
                                 <AddCourse />
                             </ProtectedRoute>
                         }
@@ -87,7 +86,7 @@ function App() {
                     <Route
                         path="/admin/courses"
                         element={
-                            <ProtectedRoute>
+                            <ProtectedRoute adminOnly>
                                 <AdminCourses />
                             </ProtectedRoute>
                         }
@@ -96,7 +95,7 @@ function App() {
                     <Route
                         path="/admin/edit-course/:id"
                         element={
-                            <ProtectedRoute>
+                            <ProtectedRoute adminOnly>
                                 <EditCourse />
                             </ProtectedRoute>
                         }
@@ -105,7 +104,7 @@ function App() {
                     <Route
                         path="/admin/add-module"
                         element={
-                            <ProtectedRoute>
+                            <ProtectedRoute adminOnly>
                                 <AddModule />
                             </ProtectedRoute>
                         }
@@ -114,7 +113,7 @@ function App() {
                     <Route
                         path="/admin/add-lesson"
                         element={
-                            <ProtectedRoute>
+                            <ProtectedRoute adminOnly>
                                 <AddLesson />
                             </ProtectedRoute>
                         }
@@ -123,7 +122,7 @@ function App() {
                     <Route
                         path="/admin/users"
                         element={
-                            <ProtectedRoute>
+                            <ProtectedRoute adminOnly>
                                 <AdminUsers />
                             </ProtectedRoute>
                         }
@@ -132,7 +131,7 @@ function App() {
                     <Route
                         path="/admin/enrollments"
                         element={
-                            <ProtectedRoute>
+                            <ProtectedRoute adminOnly>
                                 <AdminEnrollments />
                             </ProtectedRoute>
                         }

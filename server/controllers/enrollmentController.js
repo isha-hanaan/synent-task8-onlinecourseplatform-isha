@@ -9,7 +9,6 @@ const Lesson = require('../models/Lesson');
 const User = require('../models/User');
 const sendEmail = require('../utils/sendEmail');
 
-// Initialize Razorpay Instance safely
 let razorpay;
 if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
     razorpay = new Razorpay({
@@ -18,9 +17,6 @@ if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
     });
 }
 
-// @desc    Step 1: Create a secure Razorpay Order
-// @route   POST /api/enrollments/order
-// @access  Private
 const createOrder = async (req, res) => {
     try {
         const { courseId } = req.body;
@@ -42,7 +38,6 @@ const createOrder = async (req, res) => {
         const PAYMENT_MODE = process.env.PAYMENT_MODE || "mock";
         let order;
 
-        // MOCK MODE
         if (PAYMENT_MODE === "mock") {
             order = {
                 id: "order_mock_" + crypto.randomBytes(6).toString('hex'),
@@ -50,7 +45,6 @@ const createOrder = async (req, res) => {
                 amount: course.price * 100
             };
         }
-        // REAL RAZORPAY MODE
         else {
             if (!razorpay) {
                 return res.status(500).json({ message: 'Razorpay instances are unconfigured. Use mock mode.' });
@@ -88,9 +82,6 @@ const createOrder = async (req, res) => {
     }
 };
 
-// @desc    Step 2: Cryptographically verify payment signatures
-// @route   POST /api/enrollments/verify
-// @access  Private
 const verifyPayment = async (req, res) => {
     try {
         const {
@@ -103,11 +94,9 @@ const verifyPayment = async (req, res) => {
         const PAYMENT_MODE = process.env.PAYMENT_MODE || "mock";
         let isSignatureValid = false;
 
-        // MOCK MODE Sandbox override
         if (PAYMENT_MODE === "mock" || isMockSandboxSuccess) {
             isSignatureValid = true;
         }
-        // REAL RAZORPAY MODE
         else if (razorpay_order_id && razorpay_payment_id && razorpay_signature) {
             const body = razorpay_order_id + "|" + razorpay_payment_id;
             const expectedSignature = crypto
@@ -160,9 +149,6 @@ const verifyPayment = async (req, res) => {
     }
 };
 
-// @desc    Get current user's active enrollments with progress calculations
-// @route   GET /api/enrollments
-// @access  Private
 const getUserEnrollments = async (req, res) => {
     try {
         const enrollments = await Enrollment.find({
@@ -170,15 +156,12 @@ const getUserEnrollments = async (req, res) => {
             status: 'completed'
         }).populate('course');
 
-        // FIXED: Calculated total lessons using standalone relational cross-references cleanly
         const enrollmentData = await Promise.all(enrollments.map(async (enrollment) => {
             if (!enrollment.course) return null;
 
-            // 1. Locate all standalone modules corresponding to this course
             const modules = await Module.find({ course: enrollment.course._id }).select('_id');
             const moduleIds = modules.map(m => m._id);
 
-            // 2. Count all standalone lessons containing references inside those modules
             const totalLessons = await Lesson.countDocuments({ module: { $in: moduleIds } });
 
             const completedCount = enrollment.completedLessons?.length || 0;
@@ -203,9 +186,6 @@ const getUserEnrollments = async (req, res) => {
     }
 };
 
-// @desc    Mark a specific lesson as complete
-// @route   POST /api/enrollments/lesson-complete
-// @access  Private
 const markLessonComplete = async (req, res) => {
     try {
         const { courseId, lessonId } = req.body;
@@ -215,7 +195,11 @@ const markLessonComplete = async (req, res) => {
             return res.status(403).json({ message: 'Access denied. You must be enrolled in this course.' });
         }
 
-        if (!enrollment.completedLessons.includes(lessonId)) {
+        if (
+            !enrollment.completedLessons.some(
+                lesson => lesson.toString() === lessonId
+            )
+        ) {
             enrollment.completedLessons.push(lessonId);
             await enrollment.save();
         }
@@ -226,7 +210,6 @@ const markLessonComplete = async (req, res) => {
     }
 };
 
-// @desc Get All Enrollments (Admin)
 const getAllEnrollments = async (req, res) => {
     try {
         const enrollments = await Enrollment.find()

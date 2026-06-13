@@ -10,20 +10,10 @@ const {
 
 const { protect, authorize } = require('../middleware/authMiddleware');
 
-// FIXED: Enable mergeParams to inherit the parent :moduleId variable if routed from moduleRoutes
 const router = express.Router({ mergeParams: true });
 
-
-// --- CLIENT READ HOOKS ---
-
-// Handles both: /api/lessons/:moduleId AND nested /api/modules/:moduleId/lessons
-router.route('/:moduleId')
-    .get(protect, getLessonsByModule);
-
-
-// --- ADMINISTRATIVE CONTENT MUTATIONS ---
-
 router.route('/')
+    .get(protect, getLessonsByModule)
     .post(protect, authorize('admin'), createLesson);
 
 router.route('/:id')

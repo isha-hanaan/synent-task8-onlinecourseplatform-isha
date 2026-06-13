@@ -3,19 +3,14 @@
 const Module = require('../models/Module');
 const Enrollment = require('../models/Enrollment');
 
-// @desc    Get all modules for a course
-// @route   GET /api/modules/:courseId
-// @access  Private (Students) / Admin Bypass
 const getModulesByCourse = async (req, res) => {
     try {
         const courseId = req.params.courseId;
 
-        // FIXED: Catch unauthenticated guest visitors immediately before evaluating properties on req.user
         if (!req.user) {
             return res.status(401).json({ message: 'Not authorized. Please log in.' });
         }
 
-        // Check Access: If the user is an admin, let them pass directly to manage modules
         if (req.user.role !== 'admin') {
             const enrollment = await Enrollment.findOne({
                 user: req.user.id,
@@ -30,7 +25,14 @@ const getModulesByCourse = async (req, res) => {
             }
         }
 
-        const modules = await Module.find({ course: courseId }).sort('order');
+        const modules = await Module.find({ course: courseId })
+            .populate({
+                path: 'lessons',
+                options: {
+                    sort: { order: 1 }
+                }
+            })
+            .sort('order');
 
         res.status(200).json({
             success: true,
@@ -43,9 +45,6 @@ const getModulesByCourse = async (req, res) => {
     }
 };
 
-// @desc    Get all modules
-// @route   GET /api/modules
-// @access  Private/Admin
 const getAllModules = async (req, res) => {
     try {
         const modules = await Module.find()
@@ -65,17 +64,12 @@ const getAllModules = async (req, res) => {
     }
 };
 
-// @desc    Create module
-// @route   POST /api/modules OR POST /api/courses/:courseId/modules
-// @access  Private/Admin
 const createModule = async (req, res) => {
     try {
-        // FIXED: Automatically extract parent course ID from URL parameters if available
         if (req.params.courseId) {
             req.body.course = req.params.courseId;
         }
 
-        // Guard against saving a module without any parent course mapped
         if (!req.body.course) {
             return res.status(400).json({ message: 'A parent course ID is required to create a module.' });
         }
@@ -87,9 +81,6 @@ const createModule = async (req, res) => {
     }
 };
 
-// @desc    Update module
-// @route   PUT /api/modules/:id
-// @access  Private/Admin
 const updateModule = async (req, res) => {
     try {
         const moduleItem = await Module.findByIdAndUpdate(
@@ -119,9 +110,6 @@ const updateModule = async (req, res) => {
     }
 };
 
-// @desc    Delete module
-// @route   DELETE /api/modules/:id
-// @access  Private/Admin
 const deleteModule = async (req, res) => {
     try {
         const moduleItem = await Module.findById(req.params.id);

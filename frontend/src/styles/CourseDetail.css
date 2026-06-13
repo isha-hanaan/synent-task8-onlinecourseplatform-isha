@@ -1,6 +1,5 @@
 /* frontend/src/styles/CourseDetail.css */
 
-/* Page Wrapper */
 .course-detail-page {
     min-height: 100vh;
     background: #f5f7fb;
@@ -10,14 +9,12 @@
     align-items: center;
 }
 
-/* Header */
 .course-detail-header {
     width: 100%;
     max-width: 900px;
     margin-bottom: 20px;
 }
 
-/* Back Button */
 .back-btn {
     background: #ffffff;
     border: 1px solid #ddd;
@@ -32,7 +29,6 @@
     background: #f0f0f0;
 }
 
-/* Card */
 .course-detail-card {
     width: 100%;
     max-width: 900px;
@@ -42,7 +38,6 @@
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
 }
 
-/* Course Info */
 .course-info h2 {
     font-size: 28px;
     margin-bottom: 12px;
@@ -62,26 +57,22 @@
     border-top: 1px solid #e5e7eb;
 }
 
-/* Instructor */
 .course-info strong {
     color: #0f172a;
 }
 
-/* Price */
 .course-info p:last-child {
     font-size: 20px;
     font-weight: 700;
     color: #16a34a;
 }
 
-/* Actions */
 .course-actions {
     margin-top: 30px;
     display: flex;
     justify-content: flex-end;
 }
 
-/* Button */
 .course-action-btn {
     padding: 12px 20px;
     border: none;
@@ -94,12 +85,10 @@
     transition: all 0.2s ease;
 }
 
-/* Hover */
 .course-action-btn:hover {
     background: #1d4ed8;
 }
 
-/* Enrolled state */
 .course-action-btn.enrolled {
     background: #16a34a;
 }
@@ -108,7 +97,6 @@
     background: #15803d;
 }
 
-/* Processing state */
 .course-action-btn.processing {
     background: #94a3b8;
     cursor: not-allowed;

@@ -9,7 +9,6 @@ import '../styles/AdminForms.css';
 const AddLesson = () => {
 
     const { token } = useAuth();
-
     const [modules, setModules] = useState([]);
 
     const [formData, setFormData] = useState({
@@ -23,13 +22,20 @@ const AddLesson = () => {
 
     useEffect(() => {
         fetchModules();
-    }, []);
+    }, [token]);
 
     const fetchModules = async () => {
 
         try {
 
-            const { data } = await api.get('/api/modules');
+            const { data } = await api.get(
+                '/api/modules',
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
 
             setModules(data.data || []);
 
@@ -54,9 +60,14 @@ const AddLesson = () => {
 
         try {
 
+            const payload = {
+                ...formData,
+                order: Number(formData.order)
+            };
+
             await api.post(
                 '/api/lessons',
-                formData,
+                payload,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`
@@ -66,6 +77,15 @@ const AddLesson = () => {
 
             alert('Lesson created');
 
+            setFormData({
+                title: '',
+                description: '',
+                videoUrl: '',
+                module: '',
+                duration: '',
+                order: 1
+            });
+
         } catch (error) {
 
             alert(
@@ -74,7 +94,6 @@ const AddLesson = () => {
             );
 
         }
-
     };
 
     return (
@@ -95,7 +114,6 @@ const AddLesson = () => {
                         onChange={handleChange}
                     />
 
-
                     <textarea
                         name="description"
                         placeholder="Description"
@@ -103,14 +121,12 @@ const AddLesson = () => {
                         onChange={handleChange}
                     />
 
-
                     <input
                         name="videoUrl"
                         placeholder="Youtube Embed URL"
                         value={formData.videoUrl}
                         onChange={handleChange}
                     />
-
 
                     <select
                         name="module"
@@ -132,14 +148,12 @@ const AddLesson = () => {
 
                     </select>
 
-
                     <input
                         name="duration"
                         placeholder="10:00"
                         value={formData.duration}
                         onChange={handleChange}
                     />
-
 
                     <input
                         type="number"
@@ -148,14 +162,12 @@ const AddLesson = () => {
                         onChange={handleChange}
                     />
 
-
                     <button type="submit">
                         Create Lesson
                     </button>
                 </form>
 
             </div>
-
         </AdminLayout>
     );
 };

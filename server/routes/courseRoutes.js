@@ -13,13 +13,8 @@ const { protect, optionalProtect, authorize } = require('../middleware/authMiddl
 
 const router = express.Router();
 
-// FIXED: Forward nested curriculum sub-resource endpoints cleanly down the tree
-// This intercepts requests to /api/courses/:courseId/modules and passes them straight to moduleRoutes
 const moduleRouter = require('./moduleRoutes');
 router.use('/:courseId/modules', moduleRouter);
-
-
-// --- CORE COURSE RESOURCE MAPPINGS ---
 
 router.route('/')
     .get(optionalProtect, getCourses)

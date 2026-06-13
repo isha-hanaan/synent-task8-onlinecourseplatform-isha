@@ -7,7 +7,7 @@ import '../styles/AuthPages.css';
 
 const Login = () => {
     const navigate = useNavigate();
-    const { login, loading, error, clearError } = useAuth();
+    const { login, loading, error } = useAuth();
 
     const [formData, setFormData] = useState({
         email: '',
@@ -28,7 +28,6 @@ const Login = () => {
         e.preventDefault();
         setLocalError('');
 
-        // Basic validation
         if (!formData.email || !formData.password) {
             setLocalError('Email and password are required');
             return;
@@ -36,7 +35,6 @@ const Login = () => {
 
         try {
             await login(formData.email, formData.password);
-            // Redirect to dashboard on success
             navigate('/dashboard');
         } catch (err) {
             setLocalError(err.response?.data?.message || 'Login failed. Please try again.');

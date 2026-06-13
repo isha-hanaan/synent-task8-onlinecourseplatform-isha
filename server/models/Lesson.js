@@ -29,7 +29,6 @@ const LessonSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-// FIXED: Compound index to optimize module lookups and sequential lesson ordering instantly
 LessonSchema.index({ module: 1, order: 1 });
 
 module.exports = mongoose.model('Lesson', LessonSchema);

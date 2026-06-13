@@ -4,9 +4,6 @@ const Lesson = require('../models/Lesson');
 const Enrollment = require('../models/Enrollment');
 const Module = require('../models/Module');
 
-// @desc    Get lessons by module
-// @route   GET /api/lessons/:moduleId
-// @access  Private
 const getLessonsByModule = async (req, res) => {
     try {
         const moduleItem = await Module.findById(req.params.moduleId);
@@ -14,12 +11,10 @@ const getLessonsByModule = async (req, res) => {
             return res.status(404).json({ message: 'Module reference not found' });
         }
 
-        // CRASH FIX: Ensure req.user exists before attempting to look up enrollments
         if (!req.user) {
             return res.status(401).json({ message: 'Not authorized. Please log in.' });
         }
 
-        // Access enforcement layer: Admins bypass, standard users checked against course enrollments
         if (req.user.role !== 'admin') {
             const enrollment = await Enrollment.findOne({
                 user: req.user.id,
@@ -44,17 +39,12 @@ const getLessonsByModule = async (req, res) => {
     }
 };
 
-// @desc    Create lesson
-// @route   POST /api/lessons OR POST /api/modules/:moduleId/lessons
-// @access  Private/Admin
 const createLesson = async (req, res) => {
     try {
-        // FLEXIBILITY FIX: Automatically capture the module ID from URL params if present, or fall back to req.body
         if (req.params.moduleId) {
             req.body.module = req.params.moduleId;
         }
 
-        // Double check that we actually have a module ID bound before passing to Mongoose validation
         if (!req.body.module) {
             return res.status(400).json({ message: 'A parent module ID is required to create a lesson.' });
         }
@@ -66,9 +56,6 @@ const createLesson = async (req, res) => {
     }
 };
 
-// @desc    Update lesson
-// @route   PUT /api/lessons/:id
-// @access  Private/Admin
 const updateLesson = async (req, res) => {
     try {
         const lesson = await Lesson.findByIdAndUpdate(
@@ -87,9 +74,6 @@ const updateLesson = async (req, res) => {
     }
 };
 
-// @desc    Delete lesson
-// @route   DELETE /api/lessons/:id
-// @access  Private/Admin
 const deleteLesson = async (req, res) => {
     try {
         const lesson = await Lesson.findById(req.params.id);

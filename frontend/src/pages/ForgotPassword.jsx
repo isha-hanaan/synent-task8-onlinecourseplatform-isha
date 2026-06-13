@@ -10,7 +10,6 @@ const ForgotPassword = () => {
    const [success, setSuccess] = useState('');
    const [localError, setLocalError] = useState('');
 
-   // 💡 BUG FIX: Clean up stale errors from other auth screens when this view mounts
    useEffect(() => {
       clearError();
    }, []);
@@ -30,14 +29,12 @@ const ForgotPassword = () => {
          setSuccess(result?.message || 'Reset link sent successfully!');
          setEmail('');
       } catch (err) {
-         // If our context didn't catch the error message, handle fallback text string mapping
          if (!error) {
             setLocalError(err.response?.data?.message || 'Failed to send reset email');
          }
       }
    };
 
-   // Display localized validation errors if present; fallback to API network exceptions
    const activeErrorMsg = localError || error;
 
    return (

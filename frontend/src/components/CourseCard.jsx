@@ -14,7 +14,6 @@ const CourseCard = ({ item, navigate }) => {
                 {item.course?.level} • {item.course?.totalDuration}
             </p>
 
-
             <div className="progress-bar">
                 <div
                     className="progress-fill"
@@ -23,8 +22,6 @@ const CourseCard = ({ item, navigate }) => {
                     }}
                 />
             </div>
-
-
 
             <p>
                 {item.completedCount} / {item.totalLessons} lessons
@@ -44,7 +41,6 @@ const CourseCard = ({ item, navigate }) => {
                     )
             }
 
-
             <button
                 className="continue-btn"
                 onClick={() =>
@@ -61,7 +57,6 @@ const CourseCard = ({ item, navigate }) => {
                         : 'Continue Learning →'
                 }
             </button>
-
 
         </div>
     );

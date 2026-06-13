@@ -6,8 +6,6 @@ import api from '../services/api';
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    // 💡 BUG FIX: Initialize state synchronously directly from localStorage.
-    // This stops the application from flashing unauthenticated on fresh page reloads.
     const [token, setToken] = useState(() => localStorage.getItem('token'));
     const [user, setUser] = useState(() => {
         const storedUser = localStorage.getItem('user');
@@ -22,7 +20,6 @@ export const AuthProvider = ({ children }) => {
 
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-    // Sync Axios defaults if token exists on boot
     useEffect(() => {
         if (token) {
             api.defaults.headers.common['Authorization'] = `Bearer ${token}`;

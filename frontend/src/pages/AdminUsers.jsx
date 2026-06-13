@@ -4,23 +4,33 @@ import { useEffect, useState } from "react";
 import api from "../services/api";
 import AdminLayout from "../components/AdminLayout";
 import "../styles/AdminDashboard.css";
+import { useAuth } from "../context/AuthContext";
 
 function AdminUsers() {
     const [users, setUsers] = useState([]);
     const [search, setSearch] = useState("");
+    const { token } = useAuth();
 
     useEffect(() => {
         fetchUsers();
-    }, []);
+    }, [token]);
 
     const fetchUsers = async () => {
         try {
-            const { data } = await api.get("/api/auth/users");
+
+            const { data } = await api.get(
+                "/api/auth/users",
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+
             setUsers(data.users);
         } catch (err) {
         }
     };
-
 
     const filteredUsers = users.filter(
         (user) =>
@@ -28,13 +38,9 @@ function AdminUsers() {
             user.email.toLowerCase().includes(search.toLowerCase())
     );
 
-
-
     return (
         <AdminLayout>
-
             <div className="admin-page">
-
                 <div className="admin-page-header">
 
                     <div>
@@ -52,7 +58,6 @@ function AdminUsers() {
                 />
 
                 <div className="admin-table-wrapper">
-
                     <table className="admin-table">
 
                         <thead>
@@ -72,16 +77,13 @@ function AdminUsers() {
                                         <span className={`role-badge ${user.role}`}>
                                             {user.role}
                                         </span>
-                                    </td>                        </tr>
+                                    </td>
+                                </tr>
                             ))}
                         </tbody>
-
                     </table>
-
                 </div>
-
             </div>
-
         </AdminLayout>
     );
 }

@@ -46,26 +46,7 @@ const LearningPage = () => {
 
             const moduleData = moduleRes.data.data || [];
 
-            // Load lessons for each module
-            const modulesWithLessons = await Promise.all(
-                moduleData.map(async (module) => {
-                    const lessonRes = await api.get(
-                        `/api/lessons/${module._id}`,
-                        {
-                            headers: {
-                                Authorization: `Bearer ${token}`
-                            }
-                        }
-                    );
-
-                    return {
-                        ...module,
-                        lessons: lessonRes.data.data || []
-                    };
-                })
-            );
-
-            setModules(modulesWithLessons);
+            setModules(moduleData);
 
             const enrollmentRes = await api.get(
                 '/api/enrollments',
@@ -84,10 +65,8 @@ const LearningPage = () => {
                 setCompletedLessons(currentEnrollment.completedLessons || []);
             }
 
-
-
-            const fetchedLessons = modulesWithLessons.flatMap(
-                module => module.lessons
+            const fetchedLessons = moduleData.flatMap(
+                module => module.lessons || []
             );
 
             const completed =
@@ -102,8 +81,6 @@ const LearningPage = () => {
             } else if (fetchedLessons.length > 0) {
                 setSelectedLesson(fetchedLessons[0]);
             }
-
-
 
         } catch (error) {
             console.error(error);
@@ -184,7 +161,6 @@ const LearningPage = () => {
                                         }`}
                                     onClick={() => setSelectedLesson(lesson)}
                                 >
-
 
                                     <span>{lesson.title}</span>
                                     {completedLessons.includes(lesson._id) && (

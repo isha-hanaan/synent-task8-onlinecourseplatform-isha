@@ -25,14 +25,12 @@ const EnrollmentSchema = new mongoose.Schema({
         enum: ['pending', 'completed', 'failed'],
         default: 'pending'
     },
-    // FIXED: Formally map ObjectIds to the Lesson model so you can use .populate() directly in your dashboard analytics
     completedLessons: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Lesson'
     }]
 }, { timestamps: true });
 
-// Prevent duplicate active enrollments for the same user and course
 EnrollmentSchema.index({ user: 1, course: 1 }, { unique: true });
 
 module.exports = mongoose.model('Enrollment', EnrollmentSchema);

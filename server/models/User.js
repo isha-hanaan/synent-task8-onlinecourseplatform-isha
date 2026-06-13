@@ -35,14 +35,16 @@ const UserSchema = new mongoose.Schema({
         type: mongoose.Schema.ObjectId,
         ref: 'Course'
     }],
+
     verificationToken: String,
+    verificationTokenExpires: Date,
+
     resetPasswordToken: String,
     resetPasswordExpire: Date,
+
 }, { timestamps: true });
 
-// Encrypt password before saving
 UserSchema.pre('save', async function () {
-    // Explicitly use standard function definition to correctly bind 'this' contextual document scope
     if (!this.isModified('password')) {
         return;
     }
@@ -52,9 +54,7 @@ UserSchema.pre('save', async function () {
 
 });
 
-// Helper method to compare passwords
 UserSchema.methods.matchPassword = async function (enteredPassword) {
-    // Because password has select: false, ensure this is only called when password is explicitly selected/populated
     return await bcrypt.compare(enteredPassword, this.password);
 };
 

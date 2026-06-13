@@ -21,12 +21,9 @@ const Dashboard = () => {
             if (!token) return;
             try {
 
-
                 const { data } = await api.get('/api/enrollments', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-
-
 
                 setEnrollments(data.data || []);
             } catch (error) {
@@ -38,11 +35,6 @@ const Dashboard = () => {
 
         fetchPurchasedTracks();
     }, [token]);
-
-
-
-
-
 
     return (
         <div className="dashboard-layout">
@@ -62,7 +54,6 @@ const Dashboard = () => {
                     {loading ? (
                         <p>Loading...</p>
                     ) : enrollments.length === 0 ? (
-
 
                         <div>
 
@@ -90,18 +81,10 @@ const Dashboard = () => {
                         </div>
                     )}
 
-
                 </div>
-
             </div>
-
         </div>
     );
-
-
-
-
-
 };
 
 export default Dashboard;

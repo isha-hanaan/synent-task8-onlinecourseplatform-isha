@@ -12,6 +12,7 @@ const Register = () => {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
+        confirmEmail: '',
         password: '',
         confirmPassword: '',
     });
@@ -25,6 +26,7 @@ const Register = () => {
             [name]: value,
         }));
         setLocalError('');
+        setSuccess('');
     };
 
     const handleSubmit = async (e) => {
@@ -32,9 +34,22 @@ const Register = () => {
         setLocalError('');
         setSuccess('');
 
-        // Basic validation
-        if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+        if (
+            !formData.name.trim() ||
+            !formData.email.trim() ||
+            !formData.confirmEmail.trim() ||
+            !formData.password ||
+            !formData.confirmPassword
+        ) {
             setLocalError('All fields are required');
+            return;
+        }
+
+        if (
+            formData.email.trim().toLowerCase() !==
+            formData.confirmEmail.trim().toLowerCase()
+        ) {
+            setLocalError('Email addresses do not match');
             return;
         }
 
@@ -49,16 +64,20 @@ const Register = () => {
         }
 
         try {
-            await register(formData.name, formData.email, formData.password);
-            setSuccess('Registration successful! Please check your email to verify your account.');
+            await register(
+                formData.name.trim(),
+                formData.email.trim().toLowerCase(),
+                formData.password
+            );
+            setSuccess("Registration successful! We've sent a verification link to your email. Please verify your account before logging in.");
             setFormData({
                 name: '',
                 email: '',
+                confirmEmail: '',
                 password: '',
                 confirmPassword: '',
             });
-            // Redirect to login after 2 seconds
-            setTimeout(() => navigate('/login'), 2000);
+            setTimeout(() => navigate('/login'), 4000);
         } catch (err) {
             setLocalError(err.response?.data?.message || 'Registration failed. Please try again.');
         }
@@ -86,6 +105,7 @@ const Register = () => {
                     <div className="form-group">
                         <label htmlFor="name">Full Name</label>
                         <input
+                            required
                             type="text"
                             id="name"
                             name="name"
@@ -99,6 +119,7 @@ const Register = () => {
                     <div className="form-group">
                         <label htmlFor="email">Email Address</label>
                         <input
+                            required
                             type="email"
                             id="email"
                             name="email"
@@ -110,8 +131,25 @@ const Register = () => {
                     </div>
 
                     <div className="form-group">
+                        <label htmlFor="confirmEmail">
+                            Confirm Email Address
+                        </label>
+                        <input
+                            required
+                            type="email"
+                            id="confirmEmail"
+                            name="confirmEmail"
+                            value={formData.confirmEmail}
+                            onChange={handleChange}
+                            placeholder="Confirm your email"
+                            disabled={loading}
+                        />
+                    </div>
+
+                    <div className="form-group">
                         <label htmlFor="password">Password</label>
                         <input
+                            required
                             type="password"
                             id="password"
                             name="password"
@@ -125,6 +163,7 @@ const Register = () => {
                     <div className="form-group">
                         <label htmlFor="confirmPassword">Confirm Password</label>
                         <input
+                            required
                             type="password"
                             id="confirmPassword"
                             name="confirmPassword"

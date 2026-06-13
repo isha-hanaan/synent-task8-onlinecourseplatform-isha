@@ -1,6 +1,5 @@
 /* server/data/courseData.js */
 
-// Helper to generate consistent-looking MongoDB 24-character hex ObjectIds
 const mockId = (type, index) => {
     const pad = (num, size) => ('000000000000' + num).slice(-size);
     if (type === 'course') return `507f1f77bcf86cd7e0000${pad(index, 3)}`;
@@ -8,7 +7,6 @@ const mockId = (type, index) => {
     if (type === 'lesson') return `507f1f77bcf86cd7e0002${pad(index, 3)}`;
 };
 
-// 1. Standalone Course Records
 const courses = [
     {
         _id: mockId('course', 1),
@@ -44,7 +42,7 @@ const courses = [
         level: "Beginner",
         language: "English",
         totalDuration: "1h 15m",
-        isAdminApproved: false // Awaiting review
+        isAdminApproved: false 
     },
     {
         _id: mockId('course', 4),
@@ -60,22 +58,15 @@ const courses = [
     }
 ];
 
-// 2. Standalone Module Records (Referencing Courses via course ID)
 const modules = [
-    // React Modules
     { _id: mockId('module', 1), title: "Getting Started", course: mockId('course', 1), order: 1 },
     { _id: mockId('module', 2), title: "Core Concepts", course: mockId('course', 1), order: 2 },
-    // Node.js Modules
     { _id: mockId('module', 3), title: "Deep Dive into Event Loop", course: mockId('course', 2), order: 1 },
-    // UI/UX Modules
     { _id: mockId('module', 4), title: "Figma Basics", course: mockId('course', 3), order: 1 },
-    // Python Modules
     { _id: mockId('module', 5), title: "Introduction to NumPy", course: mockId('course', 4), order: 1 }
 ];
 
-// 3. Standalone Lesson Records (Referencing Modules via module ID)
 const lessons = [
-    // Lessons for React Module 1 (Getting Started)
     {
         _id: mockId('lesson', 1),
         module: mockId('module', 1),
@@ -100,7 +91,6 @@ const lessons = [
         duration: "12:45",
         videoUrl: "https://www.youtube.com/embed/bMknfKXIFA8"
     },
-    // Lessons for React Module 2 (Core Concepts)
     {
         _id: mockId('lesson', 4),
         module: mockId('module', 2),
@@ -125,7 +115,6 @@ const lessons = [
         duration: "16:50",
         videoUrl: "https://www.youtube.com/embed/O6P86uwfdR0"
     },
-    // Lessons for Node.js Module 1
     {
         _id: mockId('lesson', 7),
         module: mockId('module', 3),
@@ -142,7 +131,6 @@ const lessons = [
         duration: "22:15",
         videoUrl: "https://www.youtube.com/embed/sample2"
     },
-    // Lessons for UI/UX Module 1
     {
         _id: mockId('lesson', 9),
         module: mockId('module', 4),
@@ -151,7 +139,6 @@ const lessons = [
         duration: "15:45",
         videoUrl: "https://www.youtube.com/embed/sample3"
     },
-    // Lessons for Python Module 1
     {
         _id: mockId('lesson', 10),
         module: mockId('module', 5),

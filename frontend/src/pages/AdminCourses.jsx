@@ -15,12 +15,19 @@ const AdminCourses = () => {
 
     useEffect(() => {
         fetchCourses();
-    }, []);
+    }, [token]);
 
     const fetchCourses = async () => {
         try {
 
-            const { data } = await api.get('/api/courses');
+            const { data } = await api.get(
+                '/api/courses',
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
 
             setCourses(data.data || []);
 
@@ -58,16 +65,12 @@ const AdminCourses = () => {
                 error.response?.data?.message ||
                 'Failed to delete course'
             );
-
         }
-
     };
 
     return (
         <AdminLayout>
-
             <div className="admin-page">
-
                 <div className="admin-page-header">
 
                     <div>
@@ -97,47 +100,34 @@ const AdminCourses = () => {
                         </thead>
 
                         <tbody>
-
                             {courses.map(course => (
-
                                 <tr key={course._id}>
                                     <td>{course.title}</td>
                                     <td>{course.instructor}</td>
                                     <td>{course.category}</td>
                                     <td>₹{course.price}</td>
-
                                     <td>
-
                                         <div className="table-actions">
-
                                             <button
                                                 className="edit-btn"
                                                 onClick={() => navigate(`/admin/edit-course/${course._id}`)}
                                             >
                                                 Edit
                                             </button>
-
                                             <button
                                                 className="delete-btn"
                                                 onClick={() => deleteCourse(course._id)}
                                             >
                                                 Delete
                                             </button>
-
                                         </div>
-
                                     </td>
                                 </tr>
-
                             ))}
-
                         </tbody>
-
                     </table>
-
                 </div>
             </div>
-
         </AdminLayout>
     );
 };

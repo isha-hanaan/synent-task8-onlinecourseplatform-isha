@@ -6,15 +6,14 @@ const crypto = require('crypto');
 const sendEmail = require('../utils/sendEmail');
 const { validationResult } = require('express-validator');
 
-// Helper to generate JWT with embedded access claims
 const generateToken = (id, role) => {
-    // FIXED: Embedded role claims into payload to reduce heavy database query lookups inside auth middleware
     return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE });
 };
 
-// @desc    Register User & Send Verification Email
 const register = async (req, res) => {
-    const { name, email, password, role } = req.body;
+    const { name, email, password } = req.body;
+
+    const normalizedEmail = email.trim().toLowerCase();
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -26,21 +25,28 @@ const register = async (req, res) => {
     let createdUser = null;
 
     try {
-        let user = await User.findOne({ email });
-        if (user) return res.status(400).json({ message: 'User already exists' });
+        let user = await User.findOne({
+            email: normalizedEmail
+        });
+        if (user) return res.status(400).json({ message: 'An account with this email already exists.' });
 
         const rawToken = crypto.randomBytes(20).toString('hex');
-        const verificationToken = crypto.createHash('sha256').update(rawToken).digest('hex');
 
-        const userRole = role && ['student', 'admin'].includes(role) ? role : 'student';
+        const verificationToken = crypto
+            .createHash('sha256')
+            .update(rawToken)
+            .digest('hex');
 
         user = await User.create({
-            name,
-            email,
+            name: name.trim(),
+            email: normalizedEmail,
             password,
-            role: userRole,
-            verificationToken
+            role: 'student',
+            verificationToken,
+            verificationTokenExpires:
+                Date.now() + 10 * 60 * 1000
         });
+
         createdUser = user;
 
         const verificationUrl = `${process.env.CLIENT_URL}/verify-email/${rawToken}`;
@@ -48,72 +54,124 @@ const register = async (req, res) => {
         await sendEmail({
             email: user.email,
             subject: 'ZenithAcad - Email Verification',
-            message: `Welcome to ZenithAcad! Please verify your email by clicking: \n\n ${verificationUrl}`
-        });
+            message: `
+Welcome to ZenithAcad!
+
+Please verify your email by clicking the link below:
+
+${verificationUrl}
+
+This verification link expires in 10 minutes.
+
+If you didn't create an account, you can safely ignore this email.
+`        });
 
         res.status(201).json({ message: 'Registration successful! Please check your email to verify your account.' });
     } catch (error) {
-        console.error("🔴 REGISTRATION CRASHED! Error details:", error);
+        console.error("Registration Error:", error);
 
-        // FIXED: Solidified data cleanup to drop partially written profiles if email dispatch throws
-        if (createdUser && createdUser._id) {
-            await User.deleteOne({ _id: createdUser._id });
+        try {
+            if (createdUser?._id) {
+                await User.deleteOne({
+                    _id: createdUser._id
+                });
+            }
+        } catch (cleanupError) {
+            console.error(
+                "Cleanup failed:",
+                cleanupError.message
+            );
         }
-
-        res.status(500).json({ message: error.message });
+        res.status(500).json({
+            message: "Registration failed. Please try again."
+        });
     }
 };
 
-// @desc    Verify Email Token
 const verifyEmail = async (req, res) => {
 
     try {
         const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
 
 
-        const user = await User.findOne({ verificationToken: hashedToken });
-
-
-        if (!user) return res.status(200).json({
-            success: true,
-            message: 'Email already verified.'
+        const user = await User.findOne({
+            verificationToken: hashedToken,
+            verificationTokenExpires: { $gt: Date.now() }
         });
+
+        if (!user) {
+            return res.status(400).json({
+                message: "Invalid or expired verification link."
+            });
+        }
 
         user.isVerified = true;
         user.verificationToken = undefined;
-        await user.save();
-
+        user.verificationTokenExpires = undefined;
+        await user.save({
+            validateBeforeSave: false
+        });
         res.status(200).json({ message: 'Email verified successfully! You can now log in.' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error("Email verification error:", error);
+
+        res.status(500).json({
+            message: "Something went wrong. Please try again."
+        });
     }
 };
 
-// @desc    Login User
 const login = async (req, res) => {
     const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({
+            message: "Email and password are required."
+        });
+    }
+
+    const normalizedEmail =
+        email.trim().toLowerCase();
+
     try {
-        const user = await User.findOne({ email }).select('+password');
+        const user = await User.findOne({
+            email: normalizedEmail
+        }).select('+password');
         if (!user) return res.status(400).json({ message: 'Invalid Credentials' });
-        if (!user.isVerified) return res.status(401).json({ message: 'Please verify your email first.' });
+        if (!user.isVerified) return res.status(401).json({ message: 'Please verify your email before logging in.' });
 
         const isMatch = await user.matchPassword(password);
         if (!isMatch) return res.status(400).json({ message: 'Invalid Credentials' });
 
         res.json({
-            token: generateToken(user._id, user.role), // FIXED: Passing user role into the token signature
+            token: generateToken(user._id, user.role), 
             user: { id: user._id, name: user.name, email: user.email, role: user.role }
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error(error);
+
+        res.status(500).json({
+            message: "Internal server error."
+        });
     }
 };
 
-// @desc    Forgot Password - Send Reset Token
 const forgotPassword = async (req, res) => {
     const { email } = req.body;
+
+    if (!email) {
+        return res.status(400).json({
+            message: "Email is required."
+        });
+    }
+
+    const normalizedEmail =
+        email.trim().toLowerCase();
+
     try {
-        const user = await User.findOne({ email });
+        const user = await User.findOne({
+            email: normalizedEmail
+        });
 
         if (!user) {
             return res.status(200).json({ message: 'If that email exists, a password reset link has been sent.' });
@@ -129,16 +187,28 @@ const forgotPassword = async (req, res) => {
         await sendEmail({
             email: user.email,
             subject: 'ZenithAcad - Password Reset Request',
-            message: `You requested a password reset. Click this link to reset: \n\n ${resetUrl}`
-        });
+            message: `
+You requested a password reset.
+
+Click the link below to create a new password:
+
+${resetUrl}
+
+This link expires in 10 minutes.
+
+If you didn't request a password reset, you can safely ignore this email.
+`        });
 
         res.status(200).json({ message: 'If that email exists, a password reset link has been sent.' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error(error);
+
+        res.status(500).json({
+            message: "Internal server error."
+        });
     }
 };
 
-// @desc    Reset Password
 const resetPassword = async (req, res) => {
     try {
         const resetPasswordToken = crypto
@@ -156,6 +226,7 @@ const resetPassword = async (req, res) => {
         }
 
         user.password = req.body.password;
+        user.isVerified = true;
         user.resetPasswordToken = undefined;
         user.resetPasswordExpire = undefined;
 
@@ -166,11 +237,14 @@ const resetPassword = async (req, res) => {
             message: 'Password reset successful'
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error(error);
+
+        res.status(500).json({
+            message: "Internal server error."
+        });
     }
 };
 
-// @desc    Get All Users (Admin)
 const getAllUsers = async (req, res) => {
     try {
         const users = await User.find().select("-password");
@@ -181,9 +255,11 @@ const getAllUsers = async (req, res) => {
             users
         });
     } catch (error) {
+        console.error(error);
+
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error."
         });
     }
 };

@@ -31,7 +31,6 @@ const sendEmail = async (options) => {
     } catch (error) {
         console.error('⚠️ Nodemailer Transport Layer Delivery Failure:', error.message);
 
-        // FIXED: Explicitly attach a status code and pass the error forward so the global error middleware catches it
         error.statusCode = 503; // Service Unavailable
         error.message = `Email notification delivery failed: ${error.message}`;
         throw error;

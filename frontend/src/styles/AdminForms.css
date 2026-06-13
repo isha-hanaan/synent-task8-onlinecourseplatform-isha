@@ -14,11 +14,8 @@
     display: flex;
     flex-direction: column;
     gap: 18px;
-
     background: #ffffff;
-
     padding: 35px;
-
     border-radius: 20px;
 
     box-shadow:
@@ -31,15 +28,10 @@
 .admin-form textarea,
 .admin-form select {
     width: 100%;
-
     padding: 14px 16px;
-
     border: 1px solid #d1d5db;
-
     border-radius: 10px;
-
     font-size: 1rem;
-
     outline: none;
 
     transition: border-color .2s ease,
@@ -55,26 +47,18 @@
 .admin-form textarea:focus,
 .admin-form select:focus {
     border-color: #6c63ff;
-
     box-shadow: 0 0 0 3px rgba(108, 99, 255, .15);
 }
 
 .admin-form button {
     align-self: flex-start;
-
     background: #6c63ff;
     color: white;
-
     border: none;
-
     border-radius: 10px;
-
     padding: 14px 24px;
-
     cursor: pointer;
-
     font-weight: 600;
-
     transition: .25s ease;
 }
 
