@@ -1,5 +1,3 @@
-// frontend/src/pages/Login.jsx
-
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -34,8 +32,15 @@ const Login = () => {
         }
 
         try {
-            await login(formData.email, formData.password);
-            navigate('/dashboard');
+            const data = await login(
+                formData.email,
+                formData.password
+            );
+            if (data.user.role === 'admin') {
+                navigate('/admin');
+            } else {
+                navigate('/dashboard');
+            }
         } catch (err) {
             setLocalError(err.response?.data?.message || 'Login failed. Please try again.');
         }

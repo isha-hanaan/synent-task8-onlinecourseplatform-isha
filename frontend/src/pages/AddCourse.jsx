@@ -1,5 +1,3 @@
-// frontend/src/pages/AddCourse.jsx
-
 import { useState } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';

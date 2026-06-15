@@ -1,5 +1,3 @@
-// frontend/src/components/Sidebar.jsx
-
 import '../styles/Sidebar.css';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -42,28 +40,6 @@ const Sidebar = () => {
                         Payment History
                     </NavLink>
                 </li>
-
-                {user?.role === 'admin' && (
-                    <>
-                        <li>
-                            <NavLink to="/admin">
-                                Admin Panel
-                            </NavLink>
-                        </li>
-
-                        <li>
-                            <NavLink to="/admin/users">
-                                Users
-                            </NavLink>
-                        </li>
-
-                        <li>
-                            <NavLink to="/admin/enrollments">
-                                Enrollments
-                            </NavLink>
-                        </li>
-                    </>
-                )}
 
                 <li>
                     <button

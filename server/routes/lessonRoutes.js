@@ -1,5 +1,3 @@
-/* server/routes/lessonRoutes.js */
-
 const express = require('express');
 const {
     getLessonsByModule,

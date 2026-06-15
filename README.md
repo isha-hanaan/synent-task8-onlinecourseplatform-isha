@@ -1,6 +1,27 @@
 # Online Course Platform
 
+![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-339933?logo=node.js&logoColor=white)
+![Express.js](https://img.shields.io/badge/Express.js-000000?logo=express&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-000000?logo=jsonwebtokens&logoColor=white)
+![Razorpay](https://img.shields.io/badge/Razorpay-0C2451?logo=razorpay&logoColor=white)
+![Nodemailer](https://img.shields.io/badge/Nodemailer-0099CC)
+
 A full-stack e-learning platform where users can browse courses, enroll through Razorpay, and access learning content organized into modules and lessons. Administrators can manage courses and monitor users and enrollments.
+
+---
+
+## Live Demo
+
+[Demo Video - Watch on YouTube](https://youtu.be/cQUA293ERzg)
+
+---
+
+## Objective
+
+Develop a full-stack online learning platform that enables users to browse and purchase courses, access structured learning content, and track progress, while allowing administrators to manage courses, modules, lessons, users, and enrollments.
 
 ---
 
@@ -107,6 +128,54 @@ Admins can:
 
 ---
 
+## Screenshots
+
+### Login Page
+
+![Login](screenshots/login.png)
+
+### Course Details
+
+![Course Details](screenshots/course-details.png)
+
+### User Dashboard
+
+![Dashboard](screenshots/dashboard.png)
+
+### Learning Page
+
+![Learning](screenshots/learning.png)
+
+### Admin Panel
+
+![Admin](screenshots/admin-panel.png)
+
+---
+
+## Security Features
+
+- JWT authentication
+- Password hashing using bcryptjs
+- Protected routes
+- Role-based authorization
+- Email verification
+- Secure payment verification with Razorpay
+
+---
+
+## Methodology
+
+1. Designed MongoDB schemas for users, courses, modules, lessons, and enrollments.
+2. Developed REST APIs using Express.
+3. Implemented JWT authentication and role-based authorization.
+4. Integrated Razorpay test mode for secure payments.
+5. Built frontend interfaces using React and React Router.
+6. Implemented progress tracking and lesson completion.
+7. Added email verification and notification services using Nodemailer.
+8. Developed admin functionalities for managing platform content.
+
+---
+
 ## Project Structure
 
 ```
@@ -138,6 +207,7 @@ project-root
 │   ├── server.js
 │   └── package.json
 │
+├── screenshots
 └── README.md
 ```
 
@@ -305,29 +375,9 @@ Login → Manage Courses → Add Modules → Add Lessons → View Users → View
 
 ---
 
-## Output
+## Outcome
 
-✔ Full-stack application
-
-✔ React frontend
-
-✔ Express backend
-
-✔ MongoDB database
-
-✔ JWT authentication
-
-✔ Razorpay integration
-
-✔ Email verification and notifications
-
-✔ Course enrollment system
-
-✔ Learning progress tracking
-
-✔ Admin panel
-
-✔ Proper UI and backend integration
+The project successfully delivers a complete online course platform with authentication, payment integration, course enrollment, learning progress tracking, and administrative course management. The frontend and backend are fully integrated, providing a seamless learning experience.
 
 ---
 
@@ -347,6 +397,10 @@ Login → Manage Courses → Add Modules → Add Lessons → View Users → View
 
 **Isha Hanaan**
 
-Task 8 – Online Course Platform (Full Stack)
+GitHub: https://github.com/isha-hanaan  
 
-Built using React, Node.js, Express, MongoDB, JWT Authentication, and Razorpay.
+[Task 8 - Online Course Platform](https://github.com/isha-hanaan/synent-task8-onlinecourseplatform-isha)
+
+Built as a full-stack MERN e-learning platform for internship submission, featuring authentication, payment integration, and role-based access control.
+
+This project is fully functional. Users can register, log in, and explore all features including course enrollment, learning modules, and progress tracking.

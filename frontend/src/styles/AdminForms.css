@@ -1,5 +1,3 @@
-/* frontend/src/styles/AdminForms.css */
-
 .admin-form-page {
     max-width: 800px;
 }
@@ -35,7 +33,7 @@
     outline: none;
 
     transition: border-color .2s ease,
-                box-shadow .2s ease;
+        box-shadow .2s ease;
 }
 
 .admin-form textarea {

@@ -1,5 +1,3 @@
-/* frontend/src/App.jsx */
-
 import {
     BrowserRouter,
     Routes,
@@ -35,18 +33,15 @@ function App() {
         <AuthProvider>
             <BrowserRouter>
                 <Routes>
-                    {/* Public Course Discovery Routes */}
                     <Route path="/courses" element={<Courses />} />
                     <Route path="/courses/:id" element={<CourseDetail />} />
 
-                    {/* Auth Routes */}
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/verify-email/:token" element={<VerifyEmail />} />
                     <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-                    {/* Protected Student Dashboard */}
                     <Route
                         path="/dashboard"
                         element={
@@ -146,10 +141,8 @@ function App() {
                         }
                     />
 
-                    {/* Default redirect - sends unauthenticated users to the marketplace */}
                     <Route path="/" element={<Navigate to="/courses" replace />} />
 
-                    {/* Catch-all fallback */}
                     <Route path="*" element={<Navigate to="/courses" replace />} />
                 </Routes>
             </BrowserRouter>

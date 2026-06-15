@@ -1,5 +1,3 @@
-/* server/routes/courseRoutes.js */
-
 const express = require('express');
 const {
     getCourses,

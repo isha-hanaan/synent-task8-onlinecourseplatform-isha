@@ -1,5 +1,3 @@
-// frontend/src/pages/AddLesson.jsx
-
 import { useEffect, useState } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';

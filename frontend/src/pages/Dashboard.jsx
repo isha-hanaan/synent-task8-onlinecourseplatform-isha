@@ -1,7 +1,5 @@
-// frontend/src/pages/Dashboard.jsx
-
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import '../styles/Dashboard.css';
@@ -12,7 +10,12 @@ import DashboardStats from '../components/DashboardStats';
 
 const Dashboard = () => {
     const navigate = useNavigate();
-    const { user, token } = useAuth(); 
+    const { user, token } = useAuth();
+
+    if (user?.role === 'admin') {
+        return <Navigate to="/admin" replace />;
+    }
+
     const [enrollments, setEnrollments] = useState([]);
     const [loading, setLoading] = useState(true);
 

@@ -1,5 +1,3 @@
-// frontend/src/pages/AdminDashboard.jsx
-
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
 import '../styles/AdminDashboard.css';
@@ -18,29 +16,29 @@ const AdminDashboard = () => {
                 Manage courses, modules, lessons, users, and enrollments.
             </p>
 
-<div className="admin-stats">
+            <div className="admin-stats">
 
-    <div className="stat-box">
-        <h3>Courses</h3>
-        <p>Manage all available courses</p>
-    </div>
+                <div className="stat-box">
+                    <h3>Courses</h3>
+                    <p>Manage all available courses</p>
+                </div>
 
-    <div className="stat-box">
-        <h3>Modules</h3>
-        <p>Create course modules</p>
-    </div>
+                <div className="stat-box">
+                    <h3>Modules</h3>
+                    <p>Create course modules</p>
+                </div>
 
-    <div className="stat-box">
-        <h3>Users</h3>
-        <p>View registered users</p>
-    </div>
+                <div className="stat-box">
+                    <h3>Users</h3>
+                    <p>View registered users</p>
+                </div>
 
-    <div className="stat-box">
-        <h3>Enrollments</h3>
-        <p>Track student enrollments</p>
-    </div>
+                <div className="stat-box">
+                    <h3>Enrollments</h3>
+                    <p>Track student enrollments</p>
+                </div>
 
-</div>
+            </div>
             <div className="admin-grid">
 
                 <div className="admin-card">

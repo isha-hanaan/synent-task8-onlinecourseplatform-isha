@@ -1,5 +1,3 @@
-// frontend/src/pages/LearningPage.jsx
-
 import { useEffect, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import api from '../services/api';
@@ -138,7 +136,6 @@ const LearningPage = () => {
             </div>
 
             <div className="learning-page">
-                {/* Sidebar */}
                 <div className="course-sidebar">
                     <h2>Course Content</h2>
                     {modules.map((module) => (
@@ -176,7 +173,6 @@ const LearningPage = () => {
                     ))}
                 </div>
 
-                {/* Video Section */}
                 <div className="video-section">
                     {currentIndex === allLessons.length - 1 &&
                         isLessonCompleted ? (

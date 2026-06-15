@@ -1,5 +1,3 @@
-/* server/data/courseData.js */
-
 const mockId = (type, index) => {
     const pad = (num, size) => ('000000000000' + num).slice(-size);
     if (type === 'course') return `507f1f77bcf86cd7e0000${pad(index, 3)}`;

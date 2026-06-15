@@ -1,5 +1,3 @@
-/* server/models/Lesson.js */
-
 const mongoose = require('mongoose');
 
 const LessonSchema = new mongoose.Schema({

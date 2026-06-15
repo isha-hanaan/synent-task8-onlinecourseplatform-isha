@@ -1,5 +1,3 @@
-/* server/models/Module.js */
-
 const mongoose = require('mongoose');
 
 const ModuleSchema = new mongoose.Schema(

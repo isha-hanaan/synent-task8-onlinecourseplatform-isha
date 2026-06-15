@@ -1,17 +1,15 @@
-/* frontend/src/styles/WelcomeBanner.css */
-
-.welcome-banner{
-    background:#6c63ff;
-    padding:40px;
-    border-radius:25px;
-    color:white;
+.welcome-banner {
+    background: #6c63ff;
+    padding: 40px;
+    border-radius: 25px;
+    color: white;
 }
 
-.welcome-banner h1{
-    color:white;
-    margin-bottom:15px;
+.welcome-banner h1 {
+    color: white;
+    margin-bottom: 15px;
 }
 
-.welcome-banner p{
-    color:#ddd;
+.welcome-banner p {
+    color: #ddd;
 }

@@ -1,5 +1,3 @@
-// frontend/src/components/WelcomeBanner.jsx
-
 import '../styles/WelcomeBanner.css';
 
 const WelcomeBanner = ({ user }) => {

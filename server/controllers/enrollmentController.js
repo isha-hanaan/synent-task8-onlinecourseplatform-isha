@@ -1,5 +1,3 @@
-/* server/controllers/enrollmentController.js */
-
 const crypto = require('crypto');
 const Razorpay = require('razorpay');
 const Enrollment = require('../models/Enrollment');

@@ -1,5 +1,3 @@
-// frontend/src/components/CourseCard.jsx
-
 const CourseCard = ({ item, navigate }) => {
     return (
         <div className="course-card">

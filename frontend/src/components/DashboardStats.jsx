@@ -1,5 +1,3 @@
-// frontend/src/components/DashboardStats.jsx
-
 const DashboardStats = ({ enrollments }) => {
 
     const totalCourses = enrollments.length;

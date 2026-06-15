@@ -1,5 +1,3 @@
-/* server/middleware/errorMiddleware.js */
-
 const errorHandler = (err, req, res, next) => {
     console.error('🔴 Express Operational Intercept Error Stack:', err);
 

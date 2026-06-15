@@ -1,5 +1,3 @@
-// frontend/src/components/AdminLayout.jsx
-
 import AdminSidebar from './AdminSidebar';
 import '../styles/AdminLayout.css';
 

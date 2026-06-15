@@ -1,5 +1,3 @@
-/* server/routes/moduleRoutes.js */
-
 const express = require('express');
 const {
     getModulesByCourse,

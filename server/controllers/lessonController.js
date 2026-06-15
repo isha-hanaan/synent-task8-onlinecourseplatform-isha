@@ -1,5 +1,3 @@
-/* server/controllers/lessonController.js */
-
 const Lesson = require('../models/Lesson');
 const Enrollment = require('../models/Enrollment');
 const Module = require('../models/Module');

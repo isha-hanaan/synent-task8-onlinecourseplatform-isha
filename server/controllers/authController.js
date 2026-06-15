@@ -1,5 +1,3 @@
-/* server/controllers/authController.js */
-
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
